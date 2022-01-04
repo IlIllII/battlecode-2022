@@ -24,6 +24,8 @@ public strictfp class RobotPlayer {
 
     static MapLocation defaultExploreTile;
 
+    static MapLocation[] exploreTiles;
+
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
 
@@ -42,6 +44,8 @@ public strictfp class RobotPlayer {
         int translateY = newY - startingLoc.y;
         defaultExploreTile = startingLoc;
         defaultExploreTile = defaultExploreTile.translate(translateX, translateY);
+
+        
 
         // Finding enemy archon positions and putting them in our shared array. This code puts up
         // to four enemy archon coords in the first 4 entries in the shared array. We need at most 6 bits
@@ -118,10 +122,17 @@ public strictfp class RobotPlayer {
         // use a sigmoid to determine the probability of building a miner
         // the closer we are to the end of the game, the less likely we are 
         // to build miners 
+
+        // these are paramters we can screw with
+        // if we feel really fancy, we could try 
+        // some sort of RL to determine the best parameters
+        final double base = 1.05;
+        final double exponent_modifier = 50;
         
         // prob is y, turnCount is x on this graph 
         // https://www.desmos.com/calculator/igrdgmqx13
-        double prob = 1.0 / (1.0 + Math.pow(1.05, (turnCount - 50)));
+
+        double prob = 1.0 / (1.0 + Math.pow(base, (turnCount - exponent_modifier)));
         boolean buildMiner = rng.nextDouble() < prob;
 
         // either we try to build a miner or a soldier
@@ -141,6 +152,9 @@ public strictfp class RobotPlayer {
     }
 
     static void runMiner(RobotController rc) throws GameActionException {
+        // THINGS TO CHANGE:
+        // miners should run from enemy soldiers and sages.
+
         // Try to mine on squares around us.
         MapLocation me = rc.getLocation();
         for (int dx = -1; dx <= 1; dx++) {
@@ -204,19 +218,24 @@ public strictfp class RobotPlayer {
 
 
     static void runSoldier(RobotController rc) throws GameActionException {
-        
+        // THINGS TO CHANGE:
+        // 1. soldiers should try to move toward enemies (sometimes)
+        //     - ideally, soldiers should count allied soldiers and subtract enemy soldiers,
+        //       attacking when the number of enemies is less than the number of allies
+        // 2. in order not to get in each others way during a fight, soldiers 
+        //    could try to move perpendicular to enemies with some low probability
+
+
         // Try to attack someone. We should change this to prioritize enemy
         // soldiers or watch towers.
-        int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
+        RobotInfo[] enemies = rc.senseNearbyRobots(-1, opponent);
         if (enemies.length > 0) {
             MapLocation toAttack = enemies[0].location;
             if (rc.canAttack(toAttack)) {
                 rc.attack(toAttack);
             }
         }
-
 
         // Moving the same way as miners.
         MapLocation me = rc.getLocation();
