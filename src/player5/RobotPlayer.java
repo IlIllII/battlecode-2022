@@ -97,7 +97,7 @@ public strictfp class RobotPlayer {
                     case ARCHON:     runArchon(rc);  break;
                     case MINER:      runMiner(rc);   break;
                     case SOLDIER:    runSoldier(rc); break;
-                    case LABORATORY:     // Examplefuncsplayer doesn't use any of these robot types below.
+                    case LABORATORY: runLaboratory(rc); break;    // Examplefuncsplayer doesn't use any of these robot types below.
                     case WATCHTOWER: runWatchtower(rc); break;
                     case BUILDER:    runBuilder(rc); break;
                     case SAGE:       runSage(rc);    break;
@@ -358,17 +358,9 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-
     }
 
     static void runWatchtower(RobotController rc) throws GameActionException {
-        // THINGS TO CHANGE:
-        // 1. soldiers should try to move toward enemies (sometimes)
-        //     - ideally, soldiers should count allied soldiers and subtract enemy soldiers,
-        //       attacking when the number of enemies is less than the number of allies
-        // 2. in order not to get in each others way during a fight, soldiers 
-        //    could try to move perpendicular to enemies with some low probability
-
 
         // Try to attack someone. We should change this to prioritize enemy
         // soldiers or watch towers.
@@ -378,6 +370,16 @@ public strictfp class RobotPlayer {
             MapLocation toAttack = enemies[0].location;
             if (rc.canAttack(toAttack)) {
                 rc.attack(toAttack);
+            }
+        }
+    }
+
+    static void runLaboratory(RobotController rc) throws GameActionException {
+        // Try to attack someone. We should change this to prioritize enemy
+        // soldiers or watch towers.
+        if (rc.getTransmutationRate() > 10) {
+            if (rc.canTransmute()) {
+                rc.transmute();
             }
         }
     }
