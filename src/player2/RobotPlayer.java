@@ -110,17 +110,34 @@ public strictfp class RobotPlayer {
     static void runArchon(RobotController rc) throws GameActionException {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
+        // Build a robot in that direction.
 
-        // Here's some simple logic to choose what unit to build. In the future we might
+        // in the early game, we will build more miners
+        // in the later game, we will build more soldiers
+
+        // use a sigmoid to determine the probability of building a miner
+        // the closer we are to the end of the game, the less likely we are 
+        // to build miners 
+        
+        // prob is y, turnCount is x on this graph 
+        // https://www.desmos.com/calculator/igrdgmqx13
+        double prob = 1.0 / (1.0 + Math.pow(1.05, (turnCount - 50)));
+        boolean buildMiner = rng.nextDouble() < prob;
+
+        // either we try to build a miner or a soldier
+        if (buildMiner && rc.canBuildRobot(RobotType.MINER, dir)) {
+            rc.buildRobot(RobotType.MINER, dir);
+        } else if (rc.canBuildRobot(RobotType.SOLDIER, dir)) {
+            rc.buildRobot(RobotType.SOLDIER, dir);
+        }
+
+        // In the future we might
         // try to parameterize these constants based on the size of the map, turn count,
         // and number of archons. Intuitively I would think larger maps take longer so we might want
         // to mine more resoures comapared to smaller maps. Maybe there is a way to sense how much lead
         // is on a map and produce miners based on that?
-        if ((turnCount < 50) && rc.canBuildRobot(RobotType.MINER, dir) && (rng.nextFloat() < (1.0 / rc.getArchonCount()))) {
-            rc.buildRobot(RobotType.MINER, dir);
-        } else if (rng.nextFloat() < (1.0 / rc.getArchonCount())){
-            rc.buildRobot(RobotType.SOLDIER, dir);
-        }
+        
+        // we could track stuff about lead in the global bitvector?
     }
 
     static void runMiner(RobotController rc) throws GameActionException {
