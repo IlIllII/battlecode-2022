@@ -1,47 +1,12 @@
 package player1;
 
 import battlecode.common.*;
-import battlecode.schema.Round;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
 
-/**
- * RobotPlayer is the class that describes your main robot strategy.
- * The run() method inside this class is like your main function: this is what we'll call once your robot
- * is created!
- */
+
 public strictfp class RobotPlayer {
 
     static int turnCount = 0;
-
-    // Precomputed distances for droid sight range iteration
-    static int[] droidVisionXValues = {
-        -3, -2, -1, 0, 1, 2, 3,
-        -4, -3, -2, -1, 0, 1, 2, 3, 4,
-        -4, -3, -2, -1, 0, 1, 2, 3, 4,
-        -4, -3, -2, -1, 0, 1, 2, 3, 4,
-        -4, -3, -2, -1, 0, 1, 2, 3, 4,
-        -4, -3, -2, -1, 0, 1, 2, 3, 4,
-        -4, -3, -2, -1, 0, 1, 2, 3, 4,
-        -4, -3, -2, -1, 0, 1, 2, 3, 4,
-        -3, -2, -1, 0, 1, 2, 3,
-    };
-
-    static int[] droidVisionYValues = {
-        4, 4, 4, 4, 4, 4, 4,
-        3, 3, 3, 3, 3, 3, 3, 3, 3,
-        2, 2, 2, 2, 2, 2, 2, 2, 2,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        -2, -2, -2, -2, -2, -2, -2, -2, -2,
-        -3, -3, -3, -3, -3, -3, -3, -3, -3,
-        -4, -4, -4, -4, -4, -4, -4,
-    };
-
 
     static final Random rng = new Random();
 
@@ -72,7 +37,7 @@ public strictfp class RobotPlayer {
         MapLocation startingLoc = rc.getLocation();
         
         int newX = mapWidth - startingLoc.x;
-        int newY = mapWidth - startingLoc.y;
+        int newY = mapHeight - startingLoc.y;
         int translateX = newX - startingLoc.x;
         int translateY = newY - startingLoc.y;
         defaultExploreTile = startingLoc;
@@ -110,10 +75,11 @@ public strictfp class RobotPlayer {
     static void runArchon(RobotController rc) throws GameActionException {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canBuildRobot(RobotType.MINER, dir) && (rng.nextFloat() < 1 / rc.getArchonCount())) {
+        if ((turnCount < 50) && rc.canBuildRobot(RobotType.MINER, dir) && (rng.nextFloat() < (1.0 / rc.getArchonCount()))) {
             rc.buildRobot(RobotType.MINER, dir);
+        } else if (rng.nextFloat() < (1.0 / rc.getArchonCount())){
+            rc.buildRobot(RobotType.SOLDIER, dir);
         }
-        // rc.buildRobot(RobotType.SOLDIER, dir);
     }
 
     static void runMiner(RobotController rc) throws GameActionException {
@@ -170,6 +136,8 @@ public strictfp class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     static void runSoldier(RobotController rc) throws GameActionException {
+        MapLocation me = rc.getLocation();
+
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
@@ -181,11 +149,20 @@ public strictfp class RobotPlayer {
             }
         }
 
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-            System.out.println("I moved!");
+        MapLocation moveTarget = defaultExploreTile;
+        Direction dir = me.directionTo(moveTarget);
+        rc.setIndicatorString(defaultExploreTile.toString());
+
+        while (true) {
+            if (rc.canMove(dir)) {
+               rc.move(dir);
+               break;
+            } else {
+                dir = dir.rotateLeft();
+                if (dir == me.directionTo(moveTarget)) {
+                    break;
+                }
+            }
         }
     }
 }
