@@ -1,4 +1,4 @@
-package player4;
+package player5;
 
 import battlecode.common.*;
 import java.util.Random;
