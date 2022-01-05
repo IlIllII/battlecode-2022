@@ -21,13 +21,7 @@ public strictfp class RobotPlayer {
         Direction.NORTHWEST,
     };
 
-
-
-
-
     static MapLocation defaultExploreTile;
-
-    static MapLocation[] exploreTiles;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
