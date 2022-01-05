@@ -120,7 +120,7 @@ strictfp class ArchonStrategy {
                     break;
                 }
             }
-        } else if (round < 50) {
+        } else if (round < 30) {
             buildUnit(rc, RobotType.MINER, Direction.CENTER);
         } else {
             buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
