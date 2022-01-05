@@ -8,7 +8,7 @@ public strictfp class RobotPlayer {
 
     static int turnCount = 0;
 
-    static final Random rng = new Random();
+    static final Random rng = new Random(7777);
 
     static final Direction[] directions = {
         Direction.NORTH,
@@ -21,13 +21,7 @@ public strictfp class RobotPlayer {
         Direction.NORTHWEST,
     };
 
-
-
-
-
     static MapLocation defaultExploreTile;
-
-    static MapLocation[] exploreTiles;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
@@ -55,7 +49,7 @@ public strictfp class RobotPlayer {
         // to encode a dimension of length 60, which is the max a map can be. Right now I am using 8 bits for
         // x and y coords, but we can also use the last two bits to indicate whether the enemy archon is alive
         // or dead. As a reminder, each entry in our shared array stores a 16 bit integer.
-        if (rc.getType() == RobotType.ARCHON) {
+        if (turnCount == 1 && rc.getType() == RobotType.ARCHON) {
             for (int i=0; i < 4; i++) {
                 if (rc.readSharedArray(i) == 0) {
                     int bitvectorCoord = 0;
@@ -94,13 +88,14 @@ public strictfp class RobotPlayer {
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
             try {
                 switch (rc.getType()) {
-                    case ARCHON:     runArchon(rc);  break;
-                    case MINER:      runMiner(rc);   break;
-                    case SOLDIER:    runSoldier(rc); break;
-                    case LABORATORY: runLaboratory(rc); break;    // Examplefuncsplayer doesn't use any of these robot types below.
+                    case ARCHON:     runArchon(rc);     break;
+                    case MINER:      runMiner(rc);      break;
+                    case SOLDIER:    runSoldier(rc);    break;
+                    case LABORATORY: runLaboratory(rc); break;
+                    // Examplefuncsplayer doesn't use any of these robot types below.
                     case WATCHTOWER: runWatchtower(rc); break;
-                    case BUILDER:    runBuilder(rc); break;
-                    case SAGE:       runSage(rc);    break;
+                    case BUILDER:    runBuilder(rc);    break;
+                    case SAGE:       runSage(rc);       break;
                 }
             } catch (GameActionException e) {
                 System.out.println(rc.getType() + " Exception");
