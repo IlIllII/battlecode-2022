@@ -87,10 +87,10 @@ public strictfp class RobotPlayer {
                 int yBit = 0;
                 int unitBit = unit_integer;
                 int aliveBit = 1;
-                uint16 += yBit;
-                uint16 += xBit << 6;
-                uint16 += unitBit << 12;
-                uint16 += aliveBit << 15;
+                uint16 |= yBit;
+                uint16 |= xBit << 6;
+                uint16 |= unitBit << 12;
+                uint16 |= aliveBit << 15;
                 try {
                     rc.writeSharedArray(i, uint16);
                 } catch (Exception e) {
