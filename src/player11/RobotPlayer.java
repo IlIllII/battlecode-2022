@@ -46,6 +46,15 @@ public strictfp class RobotPlayer {
         return new MapLocation(x, y);
     }
 
+    static int encodeLocationToBitvector(MapLocation loc) {
+        int x = loc.x;
+        int y = loc.y;
+        int bitvector = 0;
+        bitvector += x << 6;
+        bitvector += y;
+        return bitvector;
+    }
+
     // Bytecodes: 144
     public static void addLocationToSharedArray(RobotController rc, MapLocation coordinates, int unitCode, int idx) throws GameActionException {
         int uint16 = 0;
@@ -165,6 +174,7 @@ public strictfp class RobotPlayer {
             } catch (NullPointerException e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
+                rc.resign();
             } catch (Exception e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
