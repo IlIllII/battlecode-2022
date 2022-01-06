@@ -2,6 +2,7 @@ package player11;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 
@@ -75,26 +76,23 @@ public strictfp class RobotPlayer {
     }
 
     public static MapLocation[] getTargetList(RobotController rc) throws GameActionException {
-        MapLocation[] sharedArray = new MapLocation[64];
-        int length = -1;
-        for (int i = 2; i < 64; i++) {
+        MapLocation[] sharedArray = new MapLocation[62];
+        int start = 2;
+        int end = 64;
+        for (int i = start; i < end; i++) {
             int bitvector = rc.readSharedArray(i);
             if (bitvector == 0) {
-                length = i - 1;
+                end = i;
                 break;
             }
             MapLocation loc = decodeLocationFromBitvector(bitvector);
             sharedArray[i] = loc;
         }
-        if (length < 0) {
-            return sharedArray;
-        } else {
-            MapLocation[] returnArray = new MapLocation[length];
-            for (int i = 0; i < length; i++) {
-                returnArray[i] = sharedArray[i];
-            }
-            return returnArray;
+        MapLocation[] slice = new MapLocation[end - start];
+        for (int i = 0; i < slice.length; i++) {
+            slice[i] = sharedArray[i];
         }
+        return slice;
     }
 
     public static void move(RobotController rc, MapLocation target) throws GameActionException {
@@ -162,6 +160,9 @@ public strictfp class RobotPlayer {
                     case SAGE:       SageStrategy.run(rc);    break;
                 }
             } catch (GameActionException e) {
+                System.out.println(rc.getType() + " Exception");
+                e.printStackTrace();
+            } catch (NullPointerException e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
             } catch (Exception e) {

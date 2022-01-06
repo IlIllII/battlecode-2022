@@ -34,8 +34,8 @@ strictfp class SoldierStrategy {
         If we are not in range of any enemy tarets, we should move toward a target in target
         list, including global target
         */
-
-
+            
+        
         MapLocation me = rc.getLocation();
         boolean moving = true;
         
@@ -72,10 +72,9 @@ strictfp class SoldierStrategy {
         boolean foundTargetInTargetList = false;
         boolean foundWarriorType = false;
         boolean foundTargetNotInTargetList = false;
+        int lowestHP = 100000;
         if (enemies.length > 0) {
-            int lowestHP = 100000;
 
-        outer:
             for (int i = 0; i < enemies.length; i++) {
                 RobotInfo enemy = enemies[i];
 
@@ -88,41 +87,46 @@ strictfp class SoldierStrategy {
                                 target = targetLoc;
                                 moving = false;
                                 foundTargetInTargetList = true;
-                                break outer;
+                                break;
                             }
                         }
                     }
                 }
-
-                // Otherwise, we will choose the lowest HP soldier
+                
                 int distanceToEnemy = me.distanceSquaredTo(enemy.location);
+                if (!foundTargetInTargetList) {
+                    // Otherwise, we will choose the lowest HP soldier
 
-                if (enemy.type.equals(RobotType.SOLDIER) || enemy.type.equals(RobotType.SAGE) || enemy.type.equals(RobotType.WATCHTOWER)) {
-                    foundTargetNotInTargetList = true;
-                    if (foundWarriorType) {
+                    if (enemy.type.equals(RobotType.SOLDIER) || enemy.type.equals(RobotType.SAGE) || enemy.type.equals(RobotType.WATCHTOWER)) {
+                        if (foundWarriorType) {
+                            if (enemy.health < lowestHP && distanceToEnemy <= ATTACK_RADIUS_SQUARED) {
+                                lowestHP = enemy.health;
+                                target = enemy.location;
+                                moving = false;
+                                foundTargetNotInTargetList = true;
+                            }
+                        } else if (distanceToEnemy <= ATTACK_RADIUS_SQUARED) {
+                            foundWarriorType = true;
+                            target = enemy.location;
+                            moving = false;
+                            lowestHP = enemy.health;
+                            foundTargetNotInTargetList = true;
+                        }
+                    }
+                    else if (!foundWarriorType && distanceToEnemy <= ATTACK_RADIUS_SQUARED) {
                         if (enemy.health < lowestHP) {
+                            foundTargetNotInTargetList = true;
                             lowestHP = enemy.health;
                             target = enemy.location;
                             moving = false;
                         }
-                    } else {
-                        if (distanceToEnemy <= ATTACK_RADIUS_SQUARED)
-                        foundWarriorType = true;
-                        target = enemy.location;
-                        moving = false;
-                        lowestHP = enemy.health;
-                    }
-                } else if (!foundWarriorType && distanceToEnemy <= ATTACK_RADIUS_SQUARED) {
-                    if (enemy.health < lowestHP) {
-                        foundTargetNotInTargetList = true;
-                        lowestHP = enemy.health;
-                        target = enemy.location;
-                        moving = false;
                     }
                 }
             }
+
             if (foundTargetNotInTargetList && !foundTargetInTargetList) {
-                RobotPlayer.addLocationToSharedArray(rc, target, 0, targetList.length + 1);
+                int idx = Math.min(targetList.length + 2, 63);
+                // RobotPlayer.addLocationToSharedArray(rc, target, 0, 2);
             }
         }
 
