@@ -126,7 +126,7 @@ strictfp class SoldierStrategy {
 
             if (foundTargetNotInTargetList && !foundTargetInTargetList) {
                 int idx = Math.min(targetList.length + 2, 63);
-                // RobotPlayer.addLocationToSharedArray(rc, target, 0, 2);
+                RobotPlayer.addLocationToSharedArray(rc, target, 0, 2);
             }
         }
 

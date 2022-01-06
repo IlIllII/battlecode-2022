@@ -11,7 +11,6 @@ strictfp class SoldierStrategy {
     static void run(RobotController rc) throws GameActionException {
         int[] sharedArray = RobotPlayer.getSharedArray(rc);
 
-        boolean globalTargeting = true;
         boolean weAreDefending = true;
         MapLocation target;
         MapLocation me = rc.getLocation();
@@ -23,7 +22,6 @@ strictfp class SoldierStrategy {
         }
         // if there is nothing to attack, move to backup target
         if (globalTarget == 0) {
-            globalTargeting = false;
             target = backupTarget;
         } else {
             // we're attacking, so we destructure bits
@@ -33,7 +31,6 @@ strictfp class SoldierStrategy {
             target = new MapLocation(xCoord, yCoord);
         }
         
-
         // If global target is dead, we set it to 0.
         Team us = rc.getTeam();
         if (!weAreDefending && rc.canSenseLocation(target)) {
@@ -87,22 +84,6 @@ strictfp class SoldierStrategy {
 
         RobotInfo[] allies = rc.senseNearbyRobots(-1, us);
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, us.opponent());
-
-        // for (int i = 2; i < sharedArray.length; i++) {
-        //     if (sharedArray[i] != 0) {
-        //         int bitvector = sharedArray[i];
-        //         int x = (bitvector & (63 << 6)) >> 6;
-        //         int y = (63 & bitvector);
-        //         MapLocation loc = new MapLocation(x, y);
-        //         if (me.isWithinDistanceSquared(loc, rc.getType().actionRadiusSquared)) {
-        //             target = loc;
-        //             if (rc.canAttack(loc)) {
-        //                 rc.attack(loc);
-        //             }
-        //             break;
-        //         }
-        //     }
-        // }
 
         if (rc.isActionReady()) {
             RobotType enemyType = RobotType.MINER;
