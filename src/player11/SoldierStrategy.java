@@ -55,7 +55,7 @@ strictfp class SoldierStrategy {
 
         if (targetList.length > 0) {
             for (MapLocation targetLoc : targetList) {
-                if (me.distanceSquaredTo(targetLoc) < me.distanceSquaredTo(target)) {
+                if (targetLoc != null && me.distanceSquaredTo(targetLoc) < me.distanceSquaredTo(target)) {
                     target = targetLoc;
                 }
             }
@@ -81,7 +81,7 @@ strictfp class SoldierStrategy {
                 // If enemy in range is in target list, we will target that
                 if (targetList.length > 0) {
                     for (MapLocation targetLoc : targetList) {
-                        if (targetLoc.equals(enemy.location)) {
+                        if (targetLoc != null && targetLoc.equals(enemy.location)) {
                             int distanceToEnemy = me.distanceSquaredTo(targetLoc);
                             if (distanceToEnemy <= ATTACK_RADIUS_SQUARED) {
                                 target = targetLoc;
@@ -126,7 +126,15 @@ strictfp class SoldierStrategy {
 
             if (foundTargetNotInTargetList && !foundTargetInTargetList) {
                 int idx = Math.min(targetList.length + 2, 63);
-                // RobotPlayer.addLocationToSharedArray(rc, target, 0, 2);
+                System.out.println(target.toString());
+                RobotPlayer.addLocationToSharedArray(rc, target, 0, idx);
+                // rc.writeSharedArray(0, RobotPlayer.encodeLocationToBitvector(target));
+                // int x = target.x;
+                // int y = target.y;
+                // int bitvector = 0;
+                // bitvector |= (x << 6);
+                // bitvector |= y;
+                // rc.writeSharedArray(2, 2);
             }
         }
 
