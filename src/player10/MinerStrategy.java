@@ -38,31 +38,7 @@ strictfp class MinerStrategy {
             globalTarget = new MapLocation(x, y);
         }
         
-        MapLocation target = globalTarget;
-
-
-        MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(me, 100);
-        
-        // Set move target
-        for (MapLocation loc : locations) {
-            if (rc.canSenseLocation(loc)) {
-                if (rc.canSenseRobotAtLocation(loc) && rc.senseRobotAtLocation(loc).type == RobotType.ARCHON && rc.senseRobotAtLocation(loc).team == rc.getTeam().opponent()) {
-                    RobotPlayer.addLocationToSharedArray(rc, loc, 0, 0);
-                }
-                if (rc.senseGold(loc) > 1) {
-                    target = loc;
-                    break;
-                }
-                if (rc.senseLead(loc) > 5) {
-                    if (me.distanceSquaredTo(loc) < me.distanceSquaredTo(target)) {
-                        target = loc;
-                    } else if (me.distanceSquaredTo(loc) == 0) {
-                        break;
-                    }
-                }
-            }
-        }
-        rc.setIndicatorLine(me, target, 100, 0, 0);
+        MapLocation target = doMinerPathing(rc, me);
 
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         boolean fleeing = false;
@@ -76,30 +52,45 @@ strictfp class MinerStrategy {
             }
         }
 
-        if (!fleeing) {
-            RobotPlayer.move(rc, target);
-        } else {
+        if (fleeing) {
             RobotPlayer.move(rc, rc.adjacentLocation(fleeDirection));
+        } else {
+            RobotPlayer.move(rc, target);
         }
-        // RobotPlayer.move(rc, target);
 
         // Mine
         int start = Clock.getBytecodeNum();
         mine(rc, rc.getLocation());
         int end = Clock.getBytecodeNum();
         rc.setIndicatorString("" + (end - start));
+    }
 
-        // for (int dx = -1; dx <= 1; dx++) {
-        //     for (int dy = -1; dy <= 1; dy++) {
-        //         MapLocation mineLocation = new MapLocation(me.x + dx, me.y + dy);
-        //         while (rc.canMineGold(mineLocation)) {
-        //             rc.mineGold(mineLocation);
-        //         }
-        //         while (rc.canMineLead(mineLocation)) {
-        //             rc.mineLead(mineLocation);
-        //         }
-        //     }
-        // }
-
+    private static MapLocation doMinerPathing(RobotController rc, MapLocation me) throws GameActionException {
+        MapLocation target = globalTarget;
+        
+        // Set move target
+        int distToTarget = me.distanceSquaredTo(target);
+        for (MapLocation loc : rc.senseNearbyLocationsWithLead(100)) {
+            if (rc.senseLead(loc) > 5) {
+                int distToLoc = me.distanceSquaredTo(loc);
+                if (distToLoc < distToTarget) {
+                    target = loc;
+                    distToTarget = distToLoc;
+                }
+                if (distToLoc == 0) {
+                    break;
+                }
+            }
+        }
+        for (MapLocation loc : rc.senseNearbyLocationsWithGold(100)) {
+            // if there are any gold sources nearby, go there
+            // immediately, and don't bother with the rest of the
+            // pathfinding.
+            target = loc;
+            break;
+        }
+        
+        rc.setIndicatorLine(me, target, 100, 0, 0);
+        return target;
     }
 }
