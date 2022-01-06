@@ -12,18 +12,22 @@ strictfp class SoldierStrategy {
         int[] sharedArray = RobotPlayer.getSharedArray(rc);
 
         boolean globalTargeting = true;
-        boolean defense = true;
+        boolean weAreDefending = true;
         MapLocation target;
         MapLocation me = rc.getLocation();
-        int globalTarget = sharedArray[1];
+        int globalTarget = sharedArray[RobotPlayer.DEFEND_LOCATION];
+        // if the global target is empty, read from attack instead
         if (globalTarget == 0) {
-            globalTarget = sharedArray[0];
-            defense = false;
+            globalTarget = sharedArray[RobotPlayer.ATTACK_LOCATION];
+            weAreDefending = false;
         }
+        // if there is nothing to attack, move to backup target
         if (globalTarget == 0) {
             globalTargeting = false;
             target = backupTarget;
         } else {
+            // we're attacking, so we destructure bits
+            // to get the target location
             int xCoord = (globalTarget & (63 << 6)) >> 6;
             int yCoord = (63 & globalTarget);
             target = new MapLocation(xCoord, yCoord);
@@ -31,8 +35,9 @@ strictfp class SoldierStrategy {
         
 
         // If global target is dead, we set it to 0.
-        if (!defense && rc.canSenseLocation(target)) {
-            if ((rc.canSenseRobotAtLocation(target) && (rc.senseRobotAtLocation(target).team == rc.getTeam())) || !rc.canSenseRobotAtLocation(target)) {
+        Team us = rc.getTeam();
+        if (!weAreDefending && rc.canSenseLocation(target)) {
+            if ((rc.canSenseRobotAtLocation(target) && (rc.senseRobotAtLocation(target).team == us)) || !rc.canSenseRobotAtLocation(target)) {
                 RobotPlayer.addLocationToSharedArray(rc, new MapLocation(0, 0), 0, 0);
             }
         }
@@ -43,7 +48,7 @@ strictfp class SoldierStrategy {
             target = new MapLocation(x, y);
         }
 
-        if (sharedArray[2] != 0) {
+        if (sharedArray[RobotPlayer.FIRST_SOLDIER_TARGET] != 0) {
             int minDistance = 3600;
             for (int i = 2; i < sharedArray.length; i++) {
                 if (sharedArray[i] != 0) {
@@ -80,8 +85,8 @@ strictfp class SoldierStrategy {
         boolean moving = true;
         boolean attacking = false;
 
-        RobotInfo[] allies = rc.senseNearbyRobots(-1, rc.getTeam());
-        RobotInfo[] enemies = rc.senseNearbyRobots(-1, RobotPlayer.opponent);
+        RobotInfo[] allies = rc.senseNearbyRobots(-1, us);
+        RobotInfo[] enemies = rc.senseNearbyRobots(-1, us.opponent());
 
         // for (int i = 2; i < sharedArray.length; i++) {
         //     if (sharedArray[i] != 0) {

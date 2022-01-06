@@ -16,9 +16,11 @@ public strictfp class RobotPlayer {
     static final int SHARED_ARRAY_SAGE_CODE = 1;
     static final int SHARED_ARRAY_ALIVE_CODE = 1;
     static final int SHARED_ARRAY_DEAD_CODE = 0;
+    static final int ATTACK_LOCATION = 0;
+    static final int DEFEND_LOCATION = 1;
+    static final int FIRST_SOLDIER_TARGET = 2;
     static int mapWidth;
     static int mapHeight;
-    static Team opponent;
     static boolean rotateLeft = rng.nextBoolean();
 
     // Bytecodes: 144
@@ -28,10 +30,12 @@ public strictfp class RobotPlayer {
         int xBit = coordinates.x;
         int yBit = coordinates.y;
         int aliveBit = 1;
-        uint16 += yBit;
-        uint16 += xBit << 6;
-        uint16 += unitBit << 14;
-        uint16 += aliveBit << 15;
+        uint16 |= yBit;
+        uint16 |= xBit << 6;
+        uint16 |= unitBit << 14;
+        uint16 |= aliveBit << 15;
+        // this could be ensured not to throw if we did
+        // bitmasking and clamping.
         try {
             rc.writeSharedArray(idx, uint16);
         } catch (Exception e) {
@@ -59,30 +63,34 @@ public strictfp class RobotPlayer {
             if (rc.canMove(dir)) {
                 int[] rubbleNumbers = new int[3];
 
-                Direction leftDir = dir.rotateLeft();
-                Direction rightDir = dir.rotateRight();
+                Direction left = dir.rotateLeft();
+                Direction right = dir.rotateRight();
 
-                rubbleNumbers[0] = rc.canSenseLocation(rc.adjacentLocation(leftDir)) && rc.canMove(leftDir) ? rc.senseRubble(rc.adjacentLocation(leftDir)) : 100;
+                rubbleNumbers[0] = rc.canSenseLocation(rc.adjacentLocation(left)) && rc.canMove(left) ? rc.senseRubble(rc.adjacentLocation(left)) : 100;
                 rubbleNumbers[1] = rc.canSenseLocation(rc.adjacentLocation(dir)) ? rc.senseRubble(rc.adjacentLocation(dir)) : 100;
-                rubbleNumbers[2] = rc.canSenseLocation(rc.adjacentLocation(rightDir)) && rc.canMove(rightDir) ? rc.senseRubble(rc.adjacentLocation(rightDir)) : 100;
+                rubbleNumbers[2] = rc.canSenseLocation(rc.adjacentLocation(right)) && rc.canMove(right) ? rc.senseRubble(rc.adjacentLocation(right)) : 100;
                 
                 int minValue = rubbleNumbers[1];
                 int minIdx = 1;
 
-                for (int j = 0; j < 3; j += 2) {
-                    if (rubbleNumbers[j] < minValue) {
-                        minValue = rubbleNumbers[j];
-                        minIdx = j;
-                    }
+                if (rubbleNumbers[0] < minValue) {
+                    minValue = rubbleNumbers[0];
+                    minIdx = 0;
                 }
 
-                if (minIdx == 0) {
-                    dir = dir.rotateLeft();
-                } else if (minIdx == 2) {
-                    dir = dir.rotateRight();
+                if (rubbleNumbers[2] < minValue) {
+                    minValue = rubbleNumbers[2];
+                    minIdx = 2;
                 }
 
-                rc.move(dir);
+                switch (minIdx) {
+                    case 0:
+                        rc.move(left); break;
+                    case 1:
+                        rc.move(dir); break;
+                    case 2:
+                        rc.move(right); break;
+                }
                 break;
             } else {
                 if (rotateLeft) {
@@ -101,7 +109,6 @@ public strictfp class RobotPlayer {
     public static void run(RobotController rc) throws GameActionException {
         mapWidth = rc.getMapWidth();
         mapHeight = rc.getMapHeight();
-        opponent = rc.getTeam().opponent();
         
         while (true) {
             try {
