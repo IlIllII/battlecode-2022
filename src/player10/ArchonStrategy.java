@@ -1,11 +1,8 @@
 package player10;
 
-
 import battlecode.common.*;
 
-
 strictfp class ArchonStrategy {
-    static int[] sharedArray = new int[64];
     static int radiusSquared = RobotType.ARCHON.visionRadiusSquared;
 
     // Bytecodes:
@@ -34,22 +31,17 @@ strictfp class ArchonStrategy {
     static MapLocation reflectedLocation(MapLocation original, int mapWidth, int mapHeight) {
         int newX = (mapWidth - 1) - original.x;
         int newY = (mapHeight - 1) - original.y;
-        int translateX = newX - original.x;
-        int translateY = newY - original.y;
-        MapLocation reflectedLocation = original.translate(translateX, translateY);
-        return reflectedLocation;
+        return new MapLocation(newX, newY);
     }
 
     static MapLocation rotatedLocation(MapLocation original, int mapWidth, int mapHeight) {
         int newX = (mapWidth - 1) - original.x;
-        int translateX = newX - original.x;
-        MapLocation reflectedLocation = original.translate(translateX, 0);
-        return reflectedLocation;
+        return new MapLocation(newX, original.y);
     }
 
     // index 1 will be for defense location, 0 will be for offense location.
     static void setDefendLocation(RobotController rc, MapLocation loc, int id) throws GameActionException {
-        int bitvector = rc.readSharedArray(1);
+        int bitvector = rc.readSharedArray(RobotPlayer.DEFEND_LOCATION);
         int lastEditor = (bitvector & (0x3 << 12)) >> 12;
         int xCoord = (bitvector & (0x3f << 6)) >> 6;
         int yCoord = (bitvector & (0x3f));
@@ -61,17 +53,17 @@ strictfp class ArchonStrategy {
             bitvector += loc.y;
             bitvector += loc.x << 6;
             bitvector += lastEditor << 12;
-            rc.writeSharedArray(1, bitvector);
+            rc.writeSharedArray(RobotPlayer.DEFEND_LOCATION, bitvector);
         }
     }
 
     static void resetDefendLocation(RobotController rc, int id) throws GameActionException {
-        int bitvector = rc.readSharedArray(1);
+        int bitvector = rc.readSharedArray(RobotPlayer.DEFEND_LOCATION);
         int lastEditor = (bitvector & (0x3 << 12)) >> 12;
         int xCoord = (bitvector & (0x3f << 6)) >> 6;
         int yCoord = (bitvector & 0x3f);
         if ((lastEditor == id && (yCoord != 0 && xCoord != 0)) || (yCoord == 0 && xCoord == 0)) {
-            rc.writeSharedArray(1, 0);
+            rc.writeSharedArray(RobotPlayer.DEFEND_LOCATION, 0);
         }
     }
 
@@ -81,32 +73,35 @@ strictfp class ArchonStrategy {
         int round = rc.getRoundNum();
         // rc.setIndicatorString("" + rc.readSharedArray(1));
         MapLocation me = rc.getLocation();
+        Team us = rc.getTeam();
 
         // We want to reset the defend position in shared array occasionally in
         // case our archon dies we don't want it locked.
         if (round % 10 == 0) {
-            rc.writeSharedArray(1, 0);
+            rc.writeSharedArray(RobotPlayer.DEFEND_LOCATION, 0);
         }
 
         // First round opening strat - make target reflected/rotated self location and
         // build a miner if archon can see any lead.
         if (round == 1) {
-            MapLocation firstTarget = reflectedLocation(me, rc.getMapWidth(), rc.getMapHeight());
+            int width = rc.getMapWidth();
+            int height = rc.getMapHeight();
+            MapLocation firstTarget = reflectedLocation(me, width, height);
             int bitvector = 0;
             bitvector += firstTarget.y;
             bitvector += firstTarget.x << 6;
-            int existingLocation = rc.readSharedArray(0);
+            int existingLocation = rc.readSharedArray(RobotPlayer.ATTACK_LOCATION);
             if (existingLocation == 0) {
-                rc.writeSharedArray(0, bitvector);
+                rc.writeSharedArray(RobotPlayer.ATTACK_LOCATION, bitvector);
             } else {
                 int x = (existingLocation & (63 << 6)) >> 6;
                 int y = (existingLocation & 63);
                 if (x == me.x && y == me.y) {
-                    firstTarget = rotatedLocation(me, rc.getMapWidth(), rc.getMapHeight());
+                    firstTarget = rotatedLocation(me, width, height);
                     bitvector = 0;
                     bitvector += firstTarget.y;
                     bitvector += firstTarget.x << 6;
-                    rc.writeSharedArray(0, bitvector);
+                    rc.writeSharedArray(RobotPlayer.ATTACK_LOCATION, bitvector);
                 }
             }
 
@@ -128,7 +123,8 @@ strictfp class ArchonStrategy {
         } else {
             // buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
             int n = RobotPlayer.rng.nextInt(4);
-            if (rc.getTeamLeadAmount(rc.getTeam()) >= 75) {
+            int teamLeadAmount = rc.getTeamLeadAmount(us);
+            if (teamLeadAmount >= 75) {
                 if (n < 2) {
                     buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
                 } else if (n > 2) {
@@ -144,15 +140,14 @@ strictfp class ArchonStrategy {
         int start = Clock.getBytecodeNum();
         // if (rc.readSharedArray(2) == 0) {
 
-        for (int i = 2; i < 64; i++) {
+        for (int i = RobotPlayer.FIRST_SOLDIER_TARGET; i < 64; i++) {
             rc.writeSharedArray(i, 0);
         }
 
         int end = Clock.getBytecodeNum();
         rc.setIndicatorString("" + (end - start));
         
-
-        RobotInfo[] enemyLocs = rc.senseNearbyRobots(radiusSquared, RobotPlayer.opponent);
+        RobotInfo[] enemyLocs = rc.senseNearbyRobots(radiusSquared, us.opponent());
 
         if (enemyLocs.length > 0) {
             MapLocation enemyLocation = enemyLocs[0].location;
