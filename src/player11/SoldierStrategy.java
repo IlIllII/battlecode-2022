@@ -128,13 +128,6 @@ strictfp class SoldierStrategy {
                 int idx = Math.min(targetList.length + 2, 63);
                 System.out.println(target.toString());
                 RobotPlayer.addLocationToSharedArray(rc, target, 0, idx);
-                // rc.writeSharedArray(0, RobotPlayer.encodeLocationToBitvector(target));
-                // int x = target.x;
-                // int y = target.y;
-                // int bitvector = 0;
-                // bitvector |= (x << 6);
-                // bitvector |= y;
-                // rc.writeSharedArray(2, 2);
             }
         }
 
