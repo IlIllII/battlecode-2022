@@ -75,6 +75,7 @@ strictfp class ArchonStrategy {
         MapLocation me = rc.getLocation();
         Team us = rc.getTeam();
         int archonCount = rc.getArchonCount();
+        int teamLeadAmount = rc.getTeamLeadAmount(us);
 
         // We want to reset the defend position in shared array occasionally in
         // case our archon dies we don't want it locked.
@@ -116,23 +117,18 @@ strictfp class ArchonStrategy {
                     break;
                 }
             }
-        } else if (round < 30) {
+        } else if (round < 20) {
             int n = RobotPlayer.rng.nextInt(archonCount);
-            if (n < 1) {
+            if (n < 1 || teamLeadAmount > 100) {
                 buildUnit(rc, RobotType.MINER, Direction.CENTER);
             }
         } else {
             // buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-            int teamLeadAmount = rc.getTeamLeadAmount(us);
             if (teamLeadAmount >= 75) {
                 int n = RobotPlayer.rng.nextInt(4);
-                if (teamLeadAmount >= 500 * archonCount) {
-                    n -= 1;
-                }
-                if (teamLeadAmount >= 3000 * archonCount) {
-                    n -= 10;
-                }
-                if (n < 2) {
+                // if we're banking more than 500 * archons lead, 
+                // spam soldiers (because we don't need any more money)
+                if (n < 2 || teamLeadAmount >= 400 * archonCount) {
                     buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
                 } else if (n > 2) {
                     buildUnit(rc, RobotType.MINER, Direction.CENTER);

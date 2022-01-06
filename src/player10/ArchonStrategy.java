@@ -126,12 +126,6 @@ strictfp class ArchonStrategy {
             int teamLeadAmount = rc.getTeamLeadAmount(us);
             if (teamLeadAmount >= 75) {
                 int n = RobotPlayer.rng.nextInt(4);
-                if (teamLeadAmount >= 500 * archonCount) {
-                    n -= 1;
-                }
-                if (teamLeadAmount >= 3000 * archonCount) {
-                    n -= 10;
-                }
                 if (n < 2) {
                     buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
                 } else if (n > 2) {
