@@ -2,6 +2,7 @@ package player11;
 
 
 import battlecode.common.*;
+import battlecode.instrumenter.inject.System;
 
 
 strictfp class ArchonStrategy {
@@ -76,6 +77,7 @@ strictfp class ArchonStrategy {
     }
 
     static void run(RobotController rc) throws GameActionException {
+
         
         int id = (rc.getID() - 1) / 2;
         int round = rc.getRoundNum();
@@ -140,6 +142,9 @@ strictfp class ArchonStrategy {
                 }
             }
         }
+        Team tm = rc.getTeam();
+        int leadAmt = rc.getTeamLeadAmount(tm);
+        rc.setIndicatorString("" + leadAmt);
 
         int start = Clock.getBytecodeNum();
         // if (rc.readSharedArray(2) == 0) {
@@ -149,7 +154,7 @@ strictfp class ArchonStrategy {
         }
 
         int end = Clock.getBytecodeNum();
-        rc.setIndicatorString("" + (end - start));
+        // rc.setIndicatorString("" + (end - start));
         
 
         RobotInfo[] enemyLocs = rc.senseNearbyRobots(radiusSquared, RobotPlayer.opponent);
