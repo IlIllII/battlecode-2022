@@ -2,6 +2,10 @@ package player12;
 
 import battlecode.common.*;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Random;
 
 class SharedArrayTargetAndIndex {
@@ -25,6 +29,42 @@ class TripleTarget {
         tertiary = tertiaryTarget;
     }
 }
+
+class BFSNode {
+    public int totalWeight;
+    public MapLocation nodeLocation;
+    public BFSNode parent;
+    public MapLocation targetLocation;
+
+    BFSNode(MapLocation nodePosition, BFSNode parentNode, int totalPathWeight, MapLocation targetLoc) {
+        totalWeight = totalPathWeight;
+        nodeLocation = nodePosition;
+        parent = parentNode;
+        targetLocation = targetLoc;
+    }
+
+    public String toString() {
+        return nodeLocation.toString();
+    }
+
+    public boolean greaterThan(BFSNode other) {
+        return totalWeight > other.totalWeight;
+    }
+
+    public boolean lessThan(BFSNode other) {
+        return totalWeight < other.totalWeight;
+    }
+}
+
+// class BFSQueueElement {
+//     boolean head;
+//     boolean tail;
+//     BFSQueueElement next;
+//     BFSQueueElement previous;
+//     BFSNode el;
+//     int index;
+// }
+
 
 public strictfp class RobotPlayer {
     static int turnCount = 0;
@@ -290,6 +330,101 @@ public strictfp class RobotPlayer {
                 }
                 if (dir.equals(oldDir)) {
                     break;
+                }
+            }
+        }
+    }
+
+    static MapLocation pathRecur(BFSNode currentNode, MapLocation start) {
+        BFSNode parent = currentNode;
+        while (!parent.parent.nodeLocation.equals(start)) {
+            parent = parent.parent;
+        }
+        assert !parent.nodeLocation.equals(start);
+        return parent.nodeLocation;
+    }
+    
+
+    /** Best first search 
+     * @throws GameActionException 
+     *
+     */
+    static void bfsMove(RobotController rc, MapLocation start, MapLocation target) throws GameActionException {
+        // We should set target to be a tile within vision distance in the direction toward target.
+        MapLocation finalTarget = target;
+        // MapLocation newTarget = start;
+        // if (!rc.canSenseLocation(target)) {
+        //     Direction dir = start.directionTo(target);
+        //     target = start;
+    
+        //     int stop = (int)(Math.sqrt(rc.getType().visionRadiusSquared) - 1);
+        //     for (int i = 0; i < stop; i++) {
+        //         target = target.add(dir);
+        //     }
+        //     finalTarget = target;
+        // } else {
+        //     finalTarget = target;
+        // }
+
+        
+        
+        BFSNode startNode = new BFSNode(start, null, (int)Math.sqrt(start.distanceSquaredTo(finalTarget)) * 10, finalTarget);
+        // System.out.println("Just before crash");
+        NodeHeap queue = new NodeHeap(200, rc);
+        // queue.printSzie();
+        queue.insert(startNode);
+        // queue.insert(startNode);
+        // queue.printSzie();
+        // queue.print();
+        
+        Map visited = new Map();
+        
+        
+        // 131 bytecode
+        visited.add(startNode.nodeLocation, startNode);
+        
+        
+        int explorations = 0;
+        
+        while (queue.length() >= 1) {
+            explorations += 1;
+            int startTime = Clock.getBytecodeNum();
+            BFSNode node = queue.remove(); // 234 bytecode;
+            int end = Clock.getBytecodeNum();
+            rc.setIndicatorString("" + (end - startTime));
+            // queue.print();
+            // queue.printSzie();
+
+            
+            if (explorations > 2) {
+                MapLocation moveTarget = pathRecur(node, start);
+                rc.setIndicatorLine(start, moveTarget, 0, 0, 100);
+                if (rc.canMove(start.directionTo(moveTarget))) {
+                    rc.move(start.directionTo(moveTarget));
+                }
+                return;
+            }
+
+            for (MapLocation neighborLoc : rc.getAllLocationsWithinRadiusSquared(node.nodeLocation, 2)) {
+                if (!rc.canSenseLocation(neighborLoc) || rc.canSenseRobotAtLocation(neighborLoc)) {
+                    continue;
+                }
+                BFSNode neighbor = new BFSNode(neighborLoc, node, (int)Math.sqrt(neighborLoc.distanceSquaredTo(finalTarget)) - (int)Math.sqrt(node.nodeLocation.distanceSquaredTo(finalTarget)) * 10 + (1 + rc.senseRubble(neighborLoc) / 10) * 10 + node.totalWeight, finalTarget);
+                if (!visited.contains(neighborLoc)) {
+                    if (neighbor.nodeLocation.equals(finalTarget)) {
+
+                        MapLocation moveTarget = pathRecur(neighbor, start);
+                        rc.setIndicatorLine(start, moveTarget, 0, 0, 100);
+                        if (rc.canMove(start.directionTo(moveTarget))) {
+                            rc.move(start.directionTo(moveTarget));
+                        }
+
+                        return;
+
+                    } else {
+                        visited.add(neighborLoc, neighbor);
+                        queue.insert(neighbor);
+                    }
                 }
             }
         }

@@ -77,96 +77,18 @@ strictfp class SoldierStrategy {
         }
 
         if (rc.isActionReady()) {
-            RobotPlayer.move(rc, tertiaryTarget);
+
+            
+            RobotPlayer.bfsMove(rc, me, tertiaryTarget);
+
+
+            // RobotPlayer.move(rc, tertiaryTarget);
+
             if (rc.canAttack(tertiaryTarget)) {
                 rc.attack(tertiaryTarget);
             }
         }
-        // else {
-            // RobotPlayer.move(rc, rc.adjacentLocation(me.directionTo(target).opposite()));
-        // }
-            
-
-
-        // // * Reconciling who to target: This basically just updates our target variable.
-        // //
-        // // First, we prioritize units in the global target list over those not in it.
-        // // Next, we prioritize soldiers/sages/watchtowers over other units.
-        // // Finally, we prioritize the lowest health enemy.
-        // //
-        // // We fuse loops to increase efficiency at the cost of readability.
-        // boolean foundTargetInTargetList = false;
-        // boolean foundWarriorType = false;
-        // boolean foundTargetNotInTargetList = false;
-        // int lowestHP = 100000;
-        // if (enemies.length > 0) {
-
-        //     for (int i = 0; i < enemies.length; i++) {
-        //         RobotInfo enemy = enemies[i];
-
-        //         // If enemy in range is in target list, we will target that
-        //         if (targetList.length > 0) {
-        //             for (MapLocation targetLoc : targetList) {
-        //                 if (targetLoc != null && targetLoc.equals(enemy.location)) {
-        //                     int distanceToEnemy = me.distanceSquaredTo(targetLoc);
-        //                     if (distanceToEnemy <= ATTACK_RADIUS_SQUARED) {
-        //                         target = targetLoc;
-        //                         moving = false;
-        //                         foundTargetInTargetList = true;
-        //                         break;
-        //                     }
-        //                 }
-        //             }
-        //         }
-                
-        //         int distanceToEnemy = me.distanceSquaredTo(enemy.location);
-        //         if (!foundTargetInTargetList) {
-        //             // Otherwise, we will choose the lowest HP soldier
-
-        //             if (enemy.type.equals(RobotType.SOLDIER) || enemy.type.equals(RobotType.SAGE) || enemy.type.equals(RobotType.WATCHTOWER)) {
-        //                 if (foundWarriorType) {
-        //                     if (enemy.health < lowestHP && distanceToEnemy <= ATTACK_RADIUS_SQUARED) {
-        //                         lowestHP = enemy.health;
-        //                         target = enemy.location;
-        //                         moving = false;
-        //                         foundTargetNotInTargetList = true;
-        //                     }
-        //                 } else if (distanceToEnemy <= ATTACK_RADIUS_SQUARED) {
-        //                     foundWarriorType = true;
-        //                     target = enemy.location;
-        //                     moving = false;
-        //                     lowestHP = enemy.health;
-        //                     foundTargetNotInTargetList = true;
-        //                 }
-        //             }
-        //             else if (!foundWarriorType && distanceToEnemy <= ATTACK_RADIUS_SQUARED) {
-        //                 if (enemy.health < lowestHP) {
-        //                     foundTargetNotInTargetList = true;
-        //                     lowestHP = enemy.health;
-        //                     target = enemy.location;
-        //                     moving = false;
-        //                 }
-        //             }
-        //         }
-        //     }
-
-        //     if (foundTargetNotInTargetList && !foundTargetInTargetList) {
-        //         int idx = Math.min(targetList.length + 2, 63);
-        //         System.out.println(target.toString());
-        //         RobotPlayer.addLocationToSharedArray(rc, target, 0, idx);
-        //     }
-        // }
-
         
-        // // Moving and attacking
-        // if (rc.canAttack(target)) {
-        //     rc.attack(target);
-        // }
-        
-        // if (moving) {
-        //     RobotPlayer.move(rc, target);
-        // }
-        
-        rc.setIndicatorLine(me, target, 0, 1, 0);
+        // rc.setIndicatorLine(me, target, 0, 1, 0);
     }
 }
