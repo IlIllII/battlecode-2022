@@ -2,9 +2,29 @@ package player11;
 
 import battlecode.common.*;
 
-import java.util.ArrayList;
 import java.util.Random;
 
+class SharedArrayTargetAndIndex {
+    MapLocation location;
+    int idx;
+
+    SharedArrayTargetAndIndex(MapLocation target, int index) {
+        location = target;
+        idx = index;
+    }
+}
+
+class TripleTarget {
+    MapLocation primary;
+    MapLocation secondary;
+    MapLocation tertiary;
+
+    TripleTarget(MapLocation primaryTarget, MapLocation secondaryTarget, MapLocation tertiaryTarget) {
+        primary = primaryTarget;
+        secondary = secondaryTarget;
+        tertiary = tertiaryTarget;
+    }
+}
 
 public strictfp class RobotPlayer {
     static int turnCount = 0;
@@ -17,10 +37,127 @@ public strictfp class RobotPlayer {
     static final int SHARED_ARRAY_SAGE_CODE = 1;
     static final int SHARED_ARRAY_ALIVE_CODE = 1;
     static final int SHARED_ARRAY_DEAD_CODE = 0;
+    static final int SHARED_ARRAY_ENEMY_START_INDEX = 2;
     static int mapWidth;
     static int mapHeight;
     static Team opponent;
     static boolean rotateLeft = rng.nextBoolean();
+    static MapLocation backupTarget;
+    static int actionRadiusSquared;
+
+    static TripleTarget acquireLocalTargets(RobotController rc, MapLocation globalTarget, RobotInfo[] enemies,
+            MapLocation me) throws GameActionException {
+        int lowestHPDangerousEnemy = 10000;
+        int lowestHPBenignEnemy = 10000;
+        MapLocation primaryTarget = globalTarget;
+        MapLocation secondaryTarget = globalTarget;
+        MapLocation tertiaryTarget = globalTarget;
+        for (RobotInfo enemy : enemies) {
+            if (enemy.type.equals(RobotType.ARCHON)) {
+                RobotPlayer.addLocationToSharedArray(rc, enemy.location, 0, 0);
+            }
+            int distanceSquaredToEnemy = me.distanceSquaredTo(enemy.location);
+            if (distanceSquaredToEnemy <= actionRadiusSquared && (enemy.type.equals(RobotType.SOLDIER)
+                    || enemy.type.equals(RobotType.SAGE) || enemy.type.equals(RobotType.WATCHTOWER))) {
+                if (enemy.health < lowestHPDangerousEnemy) {
+                    primaryTarget = enemy.location;
+                    lowestHPDangerousEnemy = enemy.health;
+                }
+            } else if (distanceSquaredToEnemy <= actionRadiusSquared) {
+                if (enemy.health < lowestHPBenignEnemy) {
+                    secondaryTarget = enemy.location;
+                    lowestHPBenignEnemy = enemy.health;
+                }
+            } else {
+                tertiaryTarget = enemy.location;
+            }
+        }
+
+        return new TripleTarget(primaryTarget, secondaryTarget, tertiaryTarget);
+    }
+
+    /**
+     * Find a potential target from the shared array.
+     * 
+     * `locateATarget` finds the closest enemy, defensive location, or offensive
+     * location from the shared array. If none of these locations are available,
+     * defaults to a given backup location `backupTarget`.
+     * 
+     * Additionally, it will see if each location is within view and if it is still
+     * valid. If not, it will clear it from the shared array/reset the backup
+     * location.
+     * 
+     * @param rc
+     * @param backupTarget
+     * @param me           - position of self. Is passing this cheaper than
+     *                     rc.getLocation()?
+     * @return
+     * @throws GameActionException
+     */
+    static SharedArrayTargetAndIndex locateCombatTarget(RobotController rc, MapLocation me) throws GameActionException {
+
+        boolean usingOffensiveTarget = false;
+        MapLocation target = getDefensiveTarget(rc);
+        if (RobotPlayer.targetDoesntExist(target)) {
+            target = getOffensiveTarget(rc);
+            usingOffensiveTarget = true;
+        }
+
+        if (usingOffensiveTarget && rc.canSenseLocation(target)) {
+            if (rc.canSenseRobotAtLocation(target)) {
+                if (rc.senseRobotAtLocation(target).type != RobotType.ARCHON) {
+                    rc.writeSharedArray(0, 0);
+                    target = new MapLocation(0, 0);
+                }
+            } else {
+                rc.writeSharedArray(0, 0);
+                target = new MapLocation(0, 0);
+            }
+        }
+
+        if (RobotPlayer.targetDoesntExist(target)) {
+            target = backupTarget;
+            if (target != null && me.distanceSquaredTo(target) <= 4) {
+                backupTarget = getRandomMapLocation();
+                target = backupTarget;
+            }
+            usingOffensiveTarget = false;
+        }
+
+        int index = -1;
+        for (int i = SHARED_ARRAY_ENEMY_START_INDEX; i < 64; i++) {
+            int bitvector = rc.readSharedArray(i);
+            if (bitvector == 0) {
+                index = i;
+                break;
+            }
+            MapLocation loc = decodeLocationFromBitvector(bitvector);
+            if (me.distanceSquaredTo(loc) < me.distanceSquaredTo(target)) {
+                target = loc;
+            }
+        }
+
+        SharedArrayTargetAndIndex result = new SharedArrayTargetAndIndex(target, index);
+
+        return result;
+    }
+
+    static void attackGlobalTargetIfAble(RobotController rc, MapLocation target, MapLocation me)
+            throws GameActionException {
+        if (me.distanceSquaredTo(target) <= actionRadiusSquared) {
+            if (rc.canSenseLocation(target)) {
+                if (rc.canSenseRobotAtLocation(target)) {
+                    RobotInfo enemy = rc.senseRobotAtLocation(target);
+                    if (enemy.type == RobotType.SOLDIER || enemy.type == RobotType.SAGE
+                            || enemy.type == RobotType.WATCHTOWER) {
+                        if (rc.canAttack(target)) {
+                            rc.attack(target);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     static MapLocation getRandomMapLocation() {
         return new MapLocation(rng.nextInt(mapWidth - 1), rng.nextInt(mapHeight - 1));
@@ -56,7 +193,8 @@ public strictfp class RobotPlayer {
     }
 
     // Bytecodes: 144
-    public static void addLocationToSharedArray(RobotController rc, MapLocation coordinates, int unitCode, int idx) throws GameActionException {
+    public static void addLocationToSharedArray(RobotController rc, MapLocation coordinates, int unitCode, int idx)
+            throws GameActionException {
         int uint16 = 0;
         int unitBit = unitCode;
         int xBit = coordinates.x;
@@ -116,10 +254,16 @@ public strictfp class RobotPlayer {
                 Direction leftDir = dir.rotateLeft();
                 Direction rightDir = dir.rotateRight();
 
-                rubbleNumbers[0] = rc.canSenseLocation(rc.adjacentLocation(leftDir)) && rc.canMove(leftDir) ? rc.senseRubble(rc.adjacentLocation(leftDir)) : 100;
-                rubbleNumbers[1] = rc.canSenseLocation(rc.adjacentLocation(dir)) ? rc.senseRubble(rc.adjacentLocation(dir)) : 100;
-                rubbleNumbers[2] = rc.canSenseLocation(rc.adjacentLocation(rightDir)) && rc.canMove(rightDir) ? rc.senseRubble(rc.adjacentLocation(rightDir)) : 100;
-                
+                rubbleNumbers[0] = rc.canSenseLocation(rc.adjacentLocation(leftDir)) && rc.canMove(leftDir)
+                        ? rc.senseRubble(rc.adjacentLocation(leftDir))
+                        : 100;
+                rubbleNumbers[1] = rc.canSenseLocation(rc.adjacentLocation(dir))
+                        ? rc.senseRubble(rc.adjacentLocation(dir))
+                        : 100;
+                rubbleNumbers[2] = rc.canSenseLocation(rc.adjacentLocation(rightDir)) && rc.canMove(rightDir)
+                        ? rc.senseRubble(rc.adjacentLocation(rightDir))
+                        : 100;
+
                 int minValue = rubbleNumbers[1];
                 int minIdx = 1;
 
@@ -151,22 +295,73 @@ public strictfp class RobotPlayer {
         }
     }
 
+    static boolean isLandSuitableForBuilding(RobotController rc, MapLocation loc) {
+        MapLocation north = loc.add(directions[0]);
+        MapLocation east = loc.add(directions[2]);
+        MapLocation south = loc.add(directions[4]);
+        MapLocation west = loc.add(directions[6]);
+
+        boolean suitable;
+        try {
+            suitable = (!rc.canSenseRobotAtLocation(north)
+                    || rc.senseRobotAtLocation(north).mode != RobotMode.TURRET
+                            && rc.senseRobotAtLocation(north).mode != RobotMode.PROTOTYPE)
+                    && (!rc.canSenseRobotAtLocation(east)
+                            || rc.senseRobotAtLocation(east).mode != RobotMode.TURRET
+                                    && rc.senseRobotAtLocation(east).mode != RobotMode.PROTOTYPE)
+                    && (!rc.canSenseRobotAtLocation(south)
+                            || rc.senseRobotAtLocation(south).mode != RobotMode.TURRET
+                                    && rc.senseRobotAtLocation(south).mode != RobotMode.PROTOTYPE)
+                    && (!rc.canSenseRobotAtLocation(west)
+                            || rc.senseRobotAtLocation(west).mode != RobotMode.TURRET
+                                    && rc.senseRobotAtLocation(west).mode != RobotMode.PROTOTYPE);
+        } catch (GameActionException e) {
+            suitable = false;
+        }
+
+        try {
+            if (rc.canSenseLocation(loc) && rc.senseRubble(loc) > 10) {
+                suitable = false;
+            }
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+
+        return suitable;
+    }
+
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
         mapWidth = rc.getMapWidth();
         mapHeight = rc.getMapHeight();
         opponent = rc.getTeam().opponent();
-        
+        actionRadiusSquared = rc.getType().actionRadiusSquared;
+        backupTarget = getRandomMapLocation();
+
         while (true) {
             try {
                 switch (rc.getType()) {
-                    case ARCHON:     ArchonStrategy.run(rc);     break;
-                    case MINER:      MinerStrategy.run(rc);      break;
-                    case SOLDIER:    SoldierStrategy.run(rc);    break;
-                    case LABORATORY: LaboratoryStrategy.run(rc); break;
-                    case WATCHTOWER: WatchtowerStrategy.run(rc); break;
-                    case BUILDER:    BuilderStrategy.run(rc);    break;
-                    case SAGE:       SageStrategy.run(rc);       break;
+                    case ARCHON:
+                        ArchonStrategy.run(rc);
+                        break;
+                    case MINER:
+                        MinerStrategy.run(rc);
+                        break;
+                    case SOLDIER:
+                        SoldierStrategy.run(rc);
+                        break;
+                    case LABORATORY:
+                        LaboratoryStrategy.run(rc);
+                        break;
+                    case WATCHTOWER:
+                        WatchtowerStrategy.run(rc);
+                        break;
+                    case BUILDER:
+                        BuilderStrategy.run(rc);
+                        break;
+                    case SAGE:
+                        SageStrategy.run(rc);
+                        break;
                 }
             } catch (GameActionException e) {
                 System.out.println(rc.getType() + " Exception");
@@ -174,10 +369,10 @@ public strictfp class RobotPlayer {
             } catch (NullPointerException e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
-                rc.resign();
             } catch (Exception e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
+                rc.resign();
             } finally {
                 Clock.yield();
             }

@@ -128,12 +128,14 @@ strictfp class ArchonStrategy {
                 int n = RobotPlayer.rng.nextInt(4);
                 if (n < 2) {
                     buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-                } else if (n > 2) {
-                    buildUnit(rc, RobotType.MINER, Direction.CENTER);
+                } else if (n >= 2) {
+                    if (n == 2) {
+                        buildUnit(rc, RobotType.MINER, Direction.CENTER);
+                    } else if (n == 3) {
+                        buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
+                    }
                     // } else if (n == 2) {
                     // buildUnit(rc, RobotType.SAGE, Direction.CENTER);
-                    // } else if (n == 3) {
-                    // buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
                 }
             }
         }

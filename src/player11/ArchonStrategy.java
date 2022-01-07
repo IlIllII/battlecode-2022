@@ -2,7 +2,6 @@ package player11;
 
 
 import battlecode.common.*;
-import battlecode.instrumenter.inject.System;
 
 
 strictfp class ArchonStrategy {
@@ -129,31 +128,33 @@ strictfp class ArchonStrategy {
             }
         } else {
             // buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-            int n = RobotPlayer.rng.nextInt(4);
+            int n = RobotPlayer.rng.nextInt(100);
             if (rc.getTeamLeadAmount(rc.getTeam()) >= 75) {
-                if (n < 2) {
+                if (n < 75) {
                     buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-                } else if (n > 2) {
-                    buildUnit(rc, RobotType.MINER, Direction.CENTER);
+                } else if (n >= 75) {
+                    if (n <= 95) {
+                        buildUnit(rc, RobotType.MINER, Direction.CENTER);
+                    } else if (n >= 95) {
+                        buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
+                    }
+                }
                 // } else if (n == 2) {
                 //     buildUnit(rc, RobotType.SAGE, Direction.CENTER);
-                // } else if (n == 3) {
-                //     buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
-                }
             }
         }
         Team tm = rc.getTeam();
         int leadAmt = rc.getTeamLeadAmount(tm);
         rc.setIndicatorString("" + leadAmt);
 
-        int start = Clock.getBytecodeNum();
+        // int start = Clock.getBytecodeNum();
         // if (rc.readSharedArray(2) == 0) {
 
         for (int i = 2; i < 64; i++) {
             rc.writeSharedArray(i, 0);
         }
 
-        int end = Clock.getBytecodeNum();
+        // int end = Clock.getBytecodeNum();
         // rc.setIndicatorString("" + (end - start));
         
 

@@ -67,11 +67,13 @@ strictfp class MinerStrategy {
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         boolean fleeing = false;
         Direction fleeDirection = Direction.NORTH;
-        if (enemies.length > 0) {
-            for (RobotInfo enemy : enemies) {
-                if (enemy.type == RobotType.SOLDIER) {
-                    fleeing = true;
-                    fleeDirection = me.directionTo(enemy.location).opposite();
+        if (rc.getHealth() < rc.getType().health / 4) {
+            if (enemies.length > 0) {
+                for (RobotInfo enemy : enemies) {
+                    if (enemy.type == RobotType.SOLDIER) {
+                        fleeing = true;
+                        fleeDirection = me.directionTo(enemy.location).opposite();
+                    }
                 }
             }
         }
