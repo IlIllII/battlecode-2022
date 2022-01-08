@@ -37,9 +37,9 @@ strictfp class SoldierStrategy {
         MapLocation secondaryTarget = localTargets.secondary;
         MapLocation tertiaryTarget = localTargets.tertiary;
 
-        if (rc.getRoundNum() < 100) {
-            tertiaryTarget = rc.adjacentLocation(RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)]);
-        }
+        // if (rc.getRoundNum() < 45) {
+        //     tertiaryTarget = rc.adjacentLocation(RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)]);
+        // }
 
 
         if (rc.senseNearbyRobots(2, rc.getTeam()).length > 4) {
@@ -58,12 +58,16 @@ strictfp class SoldierStrategy {
             rc.attack(tertiaryTarget);
         }
 
+        // if (rc.senseNearbyRobots(-1, rc.getTeam()).length < 5 /* && rc.canSenseLocation(primaryTarget) && rc.canSenseRobotAtLocation(primaryTarget) && rc.senseRobotAtLocation(primaryTarget).type.equals(RobotType.SOLDIER) */ ) {
+        //     RobotPlayer.move2(rc, rc.adjacentLocation(me.directionTo(primaryTarget).opposite()).add(me.directionTo(primaryTarget)), 3);
+        // }
+
         if (rc.isActionReady() && rc.isMovementReady()) {
 
             // Experimental move.
             int recursionLimit = 4;
             int startTime = Clock.getBytecodeNum();
-            if (Clock.getBytecodesLeft() <= longestTime + 100) {
+            if (Clock.getBytecodesLeft() <= longestTime + 1000) {
                 recursionLimit = 3;
             }
             RobotPlayer.move2(rc, tertiaryTarget, recursionLimit);

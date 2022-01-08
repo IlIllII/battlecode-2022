@@ -79,6 +79,10 @@ strictfp class ArchonStrategy {
 
         int randomInteger = RobotPlayer.rng.nextInt(100);
         int archonCount = rc.getArchonCount();
+        int roundCutoff = 50;
+        if (archonCount <= 2) {
+            roundCutoff = 20;
+        }
         int id = (rc.getID() - 1) / 2;
         int round = rc.getRoundNum();
         int leadAmount = rc.getTeamLeadAmount(rc.getTeam());
@@ -119,31 +123,23 @@ strictfp class ArchonStrategy {
                     break;
                 }
             }
-        } else if (round < 30) {
+        } else if (round < roundCutoff) {
             if (randomInteger < (100 / archonCount)) {
                 buildUnit(rc, RobotType.MINER, Direction.CENTER);
             }
             if (leadAmount > 200) {
-                buildUnit(rc, RobotType.MINER, Direction.CENTER);
-            }
-
-        } else if (round < 40) { // if map is big, keep building miners
-            if (RobotPlayer.mapHeight > 40 && RobotPlayer.mapWidth > 40) {
-                if (randomInteger < (100 / archonCount)) {
-                    buildUnit(rc, RobotType.MINER, Direction.CENTER);
-                }
-                if (leadAmount > 200) {
-                    buildUnit(rc, RobotType.MINER, Direction.CENTER);
-                }
-            } else {
-                if (randomInteger < (100 / archonCount)) {
-                    buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-                }
-                if (leadAmount > 200) {
-                    buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-                }
+                buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
             }
             
+
+        } else if (round < 50) {
+            if (randomInteger < (100 / archonCount) / 8) {
+                buildUnit(rc, RobotType.MINER, Direction.CENTER);
+            }
+            if (leadAmount > 200) {
+                buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
+            }
+            buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
         } else {
             int n = RobotPlayer.rng.nextInt(10);
             if (leadAmount < 200) {
