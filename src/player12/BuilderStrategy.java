@@ -3,9 +3,13 @@ package player12;
 import battlecode.common.*;
 
 strictfp class BuilderStrategy {
+    static boolean selfDestruct = RobotPlayer.rng.nextBoolean();
 
     static void run(RobotController rc) throws GameActionException {
         MapLocation me = rc.getLocation();
+        // if (selfDestruct && rc.senseLead(me) == 0 && rc.senseGold(me) == 0) {
+        //     rc.disintegrate();
+        // }
 
         SharedArrayTargetAndIndex targetAndIndex = RobotPlayer.locateCombatTarget(rc, me);
         MapLocation target = targetAndIndex.location;

@@ -343,6 +343,100 @@ public strictfp class RobotPlayer {
         assert !parent.nodeLocation.equals(start);
         return parent.nodeLocation;
     }
+
+    static void stepOffRubble(RobotController rc, MapLocation me) throws GameActionException {
+        if (rc.isMovementReady() == false) {
+            return;
+        }
+
+        MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(me, 2);
+        int baseRubble = rc.senseRubble(me);
+        if (baseRubble == 0) {
+            return;
+        }
+        Direction moveDirection = Direction.CENTER;        
+        for (int i = 0; i < locations.length; i++) {
+            if (rc.canSenseLocation(locations[i]) && !rc.canSenseRobotAtLocation(locations[i])) {
+                int rubble = rc.senseRubble(locations[i]);
+                if (rubble < baseRubble) {
+                    moveDirection = me.directionTo(locations[i]);
+                    baseRubble = rubble;
+                }
+            }
+        }
+        
+        if (rc.canMove(moveDirection)) {
+            rc.move(moveDirection);
+        }
+    }
+
+    static void move2(RobotController rc, MapLocation target, int recursionLimit) throws GameActionException {
+        int returnCode = simpleShortestPath(rc, rc.getLocation(), target, 0, 0, recursionLimit);
+    }
+
+    static int simpleShortestPath(RobotController rc, MapLocation start, MapLocation target, int currentWeight, int recursionLevel, int recursionLimit) throws GameActionException {
+        if (recursionLevel == recursionLimit) {
+            int finalWeight = currentWeight + rc.senseRubble(start) + (int)Math.sqrt(start.distanceSquaredTo(target));
+            return finalWeight;
+        }
+
+        currentWeight += rc.senseRubble(start);
+
+        
+        Direction initialDir = start.directionTo(target);
+        Direction leftDir = initialDir.rotateLeft();
+        Direction rightDir = initialDir.rotateRight();
+        MapLocation leftTile = rc.adjacentLocation(leftDir);
+        int leftWeight = leftTile.distanceSquaredTo(target);
+        if (rc.canSenseLocation(leftTile) && !rc.canSenseRobotAtLocation(leftTile)) {
+            leftWeight = simpleShortestPath(rc, leftTile, target, currentWeight, recursionLevel + 1, recursionLimit);
+        }
+        
+        MapLocation centerTile = rc.adjacentLocation(initialDir);
+        int centerWeight = centerTile.distanceSquaredTo(target);
+        if (rc.canSenseLocation(centerTile) && !rc.canSenseRobotAtLocation(centerTile)) {
+            centerWeight = simpleShortestPath(rc, centerTile, target, currentWeight, recursionLevel + 1, recursionLimit);
+        }
+        
+        MapLocation rightTile = rc.adjacentLocation(rightDir);
+        int rightWeight = centerTile.distanceSquaredTo(target);
+        if (rc.canSenseLocation(rightTile) && !rc.canSenseRobotAtLocation(rightTile)) {
+            rightWeight = simpleShortestPath(rc, rightTile, target, currentWeight, recursionLevel + 1, recursionLimit);
+        }
+
+        if (recursionLevel != 0) {
+            return Math.min(Math.min(leftWeight, centerWeight), rightWeight);
+        }
+
+        if (centerWeight <= leftWeight && centerWeight <= rightWeight) {
+            if (rc.canMove(initialDir)) {
+                rc.move(initialDir);
+                return 0;
+            }
+        }
+        if (leftWeight <= centerWeight && leftWeight <= rightWeight) {
+            if (rc.canMove(leftDir)) {
+                rc.move(leftDir);
+                return 0;
+            }
+        }
+        if (rc.canMove(rightDir)) {
+            rc.move(rightDir);
+            return 0;
+        }
+        return 1;
+    }
+
+    static void simpleMove(RobotController rc, MapLocation start, MapLocation target) {
+        Direction initialDir = start.directionTo(target);
+        MapLocation left1 = rc.adjacentLocation(initialDir.rotateLeft());
+        MapLocation center1 = rc.adjacentLocation(initialDir);
+        MapLocation right1 = rc.adjacentLocation(initialDir.rotateRight());
+
+
+
+
+    }
     
 
     /** Best first search 
@@ -368,23 +462,57 @@ public strictfp class RobotPlayer {
 
         
         
-        BFSNode startNode = new BFSNode(start, null, (int)Math.sqrt(start.distanceSquaredTo(finalTarget)) * 10, finalTarget);
+        BFSNode startNode = new BFSNode(start, null, (int)Math.sqrt(start.distanceSquaredTo(finalTarget)) * 100, finalTarget);
         // System.out.println("Just before crash");
         NodeHeap queue = new NodeHeap(200, rc);
-        // queue.printSzie();
+        // // queue.printSzie();
         queue.insert(startNode);
         // queue.insert(startNode);
         // queue.printSzie();
         // queue.print();
-        
         Map visited = new Map();
+
+        // MapLocation me = rc.getLocation();
+
+        // MapLocation[] tiles = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(), 25);
+        // int[] weights = new int[tiles.length];
+        // int[] indices = new int[tiles.length];
+        // int numTiles = 0;
+        // for (int i = 0; i < weights.length; i++) {
+
+        //     // Check to see if tile is closer to target than starting tile and is unoccupied.
+        //     if (me.distanceSquaredTo(target) > tiles[i].distanceSquaredTo(target) && !rc.canSenseRobotAtLocation(tiles[i])) {
+
+        //         if (me.distanceSquaredTo(tiles[i]) <= 2) {
+        //             indices[numTiles] = i;
+        //             numTiles++;
+        //             weights[i] = rc.senseRubble(tiles[i]);
+        //             continue;
+        //         }
+
+        //         for (int j = 0; j < numTiles; j++) {
+        //             if (tiles[indices[j]].distanceSquaredTo(tiles[i]) <= 2) {
+
+        //             }
+        //         }
+        //     }
+        // }
         
         
         // 131 bytecode
         visited.add(startNode.nodeLocation, startNode);
+
+        // BFSNode[] toVisit = new BFSNode[500];
+        // toVisit[0] = startNode;
+        
         
         
         int explorations = 0;
+        // int currentIndex = 0;
+        // int endIndex = 1;
+        // while(currentIndex != endIndex) {
+
+        // }
         
         while (queue.length() >= 1) {
             explorations += 1;

@@ -7,34 +7,9 @@ strictfp class SoldierStrategy {
     static RobotType myType = RobotType.SOLDIER;
     final static int ATTACK_RADIUS_SQUARED = myType.actionRadiusSquared;
     final static int ATTACK_RADIUS_SQUARED_WITHIN_ONE_MOVE = 20;
+    static int longestTime = 0;
 
-    static void run(RobotController rc) throws GameActionException {
-        /* Pseudocode:
-        
-        Start with global defensive target. If this is 0, use global offensive target. If this is 0,
-        use our backup random target.
-
-        Then, if there are enemies around us, check to see if any are in the shared target list.
-        If one is, attack it. If not, choose the enemy soldier with the lowest health, attack it,
-        and add it to the shared target list.
-
-        If there are not enemies around us, determine the closest enemy in the shared target list
-        and move toward it.
-
-        If there are not enemies in the shared target list, we will simply move toward the global target.
-
-        We get shared target list;
-
-        If we are in range of a target list target, we should attack it.
-        
-        If not but we are in range of an unlisted enemy target, we should attack it and
-        add it to the target list.
-
-        If we are not in range of any enemy tarets, we should move toward a target in target
-        list, including global target
-        */
-            
-        
+    static void run(RobotController rc) throws GameActionException {  
         MapLocation me = rc.getLocation();
         // boolean moving = true;
         
@@ -63,6 +38,9 @@ strictfp class SoldierStrategy {
         MapLocation tertiaryTarget = localTargets.tertiary;
 
 
+        if (rc.senseNearbyRobots(2, rc.getTeam()).length > 4) {
+            RobotPlayer.move2(rc, primaryTarget, 3);
+        }
         if (rc.canAttack(primaryTarget)) {
             rc.attack(primaryTarget);
             if (sharedArrayIndex != -1) {
@@ -76,10 +54,24 @@ strictfp class SoldierStrategy {
             rc.attack(tertiaryTarget);
         }
 
-        if (rc.isActionReady()) {
+        if (rc.isActionReady() && rc.isMovementReady()) {
 
-            
-            RobotPlayer.bfsMove(rc, me, tertiaryTarget);
+            // Experimental move.
+            int recursionLimit = 4;
+            int startTime = Clock.getBytecodeNum();
+            if (Clock.getBytecodesLeft() <= longestTime + 100) {
+                recursionLimit = 3;
+            }
+            RobotPlayer.move2(rc, tertiaryTarget, recursionLimit);
+            int end = Clock.getBytecodeNum();
+
+            if ((end - startTime) > longestTime) {
+                longestTime = (end - startTime);
+            }
+            rc.setIndicatorString("" + longestTime);
+
+            // Fall back to simple move incase other move doesn't work.
+            RobotPlayer.move(rc, tertiaryTarget);
 
 
             // RobotPlayer.move(rc, tertiaryTarget);
@@ -87,6 +79,8 @@ strictfp class SoldierStrategy {
             if (rc.canAttack(tertiaryTarget)) {
                 rc.attack(tertiaryTarget);
             }
+        } else {
+            RobotPlayer.stepOffRubble(rc, me);
         }
         
         // rc.setIndicatorLine(me, target, 0, 1, 0);
