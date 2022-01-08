@@ -77,10 +77,11 @@ strictfp class ArchonStrategy {
 
     static void run(RobotController rc) throws GameActionException {
 
-        
+        int randomInteger = RobotPlayer.rng.nextInt(100);
+        int archonCount = rc.getArchonCount();
         int id = (rc.getID() - 1) / 2;
         int round = rc.getRoundNum();
-        // rc.setIndicatorString("" + rc.readSharedArray(1));
+        int leadAmount = rc.getTeamLeadAmount(rc.getTeam());
         MapLocation me = rc.getLocation();
 
         // We want to reset the defend position in shared array occasionally in
@@ -89,9 +90,8 @@ strictfp class ArchonStrategy {
             rc.writeSharedArray(1, 0);
         }
 
-        // First round opening strat - make target reflected/rotated self location and
-        // build a miner if archon can see any lead.
-        if (round == 1) {
+        // Differential strategies based on round number
+        if (round == 1) { // Set targets and build a miner if we see lead
             MapLocation firstTarget = reflectedLocation(me, rc.getMapWidth(), rc.getMapHeight());
             int bitvector = 0;
             bitvector += firstTarget.y;
@@ -111,8 +111,6 @@ strictfp class ArchonStrategy {
                 }
             }
 
-            // RobotPlayer.addLocationToSharedArray(rc, a, 1, 1);
-
             MapLocation[] locs = rc.getAllLocationsWithinRadiusSquared(me, radiusSquared);
 
             for (MapLocation loc : locs) {
@@ -122,27 +120,51 @@ strictfp class ArchonStrategy {
                 }
             }
         } else if (round < 30) {
-            int n = RobotPlayer.rng.nextInt(rc.getArchonCount());
-            if (n < 1) {
+            if (randomInteger < (100 / archonCount)) {
                 buildUnit(rc, RobotType.MINER, Direction.CENTER);
             }
-        } else {
-            // buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-            int n = RobotPlayer.rng.nextInt(100);
-            if (rc.getTeamLeadAmount(rc.getTeam()) >= 75) {
-                if (n < 75) {
+            if (leadAmount > 200) {
+                buildUnit(rc, RobotType.MINER, Direction.CENTER);
+            }
+
+        } else if (round < 40) { // if map is big, keep building miners
+            if (RobotPlayer.mapHeight > 40 && RobotPlayer.mapWidth > 40) {
+                if (randomInteger < (100 / archonCount)) {
+                    buildUnit(rc, RobotType.MINER, Direction.CENTER);
+                }
+                if (leadAmount > 200) {
+                    buildUnit(rc, RobotType.MINER, Direction.CENTER);
+                }
+            } else {
+                if (randomInteger < (100 / archonCount)) {
                     buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-                } else if (n >= 75) {
-                    if (n <= 95) {
+                }
+                if (leadAmount > 200) {
+                    buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
+                }
+            }
+            
+        } else {
+            int n = RobotPlayer.rng.nextInt(10);
+            if (leadAmount < 200) {
+                if (randomInteger < (100 / archonCount)) {
+                    if (n < 8) {
+                        buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
+                    } else {
                         buildUnit(rc, RobotType.MINER, Direction.CENTER);
-                    } else if (n >= 95) {
-                        buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
                     }
                 }
-                // } else if (n == 2) {
-                //     buildUnit(rc, RobotType.SAGE, Direction.CENTER);
+            } else {
+                if (n < 7) {
+                    buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
+                } else if (n < 8) {
+                    buildUnit(rc, RobotType.MINER, Direction.CENTER);
+                } else {
+                    buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
+                }
             }
         }
+
         Team tm = rc.getTeam();
         int leadAmt = rc.getTeamLeadAmount(tm);
         rc.setIndicatorString("" + leadAmt);

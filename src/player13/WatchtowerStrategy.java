@@ -29,6 +29,8 @@ strictfp class WatchtowerStrategy {
         int d3 = me.distanceSquaredTo(tertiaryTarget);
         int shortestDistance = Math.min(Math.min(d1, d2), d3);
 
+        rc.setIndicatorLine(me, primaryTarget, 100, 100, 100);
+
         RobotMode currentMode = rc.getMode();
         if (currentMode.equals(RobotMode.TURRET)) {
             if (rc.canAttack(primaryTarget)) {
@@ -45,29 +47,33 @@ strictfp class WatchtowerStrategy {
                 rc.attack(tertiaryTarget);
             }
 
-            if (shortestDistance >= rc.getType().visionRadiusSquared) {
+            if (shortestDistance >= rc.getType().visionRadiusSquared && rc.getRoundNum() > 150) {
                 if (rc.canTransform()) {
                     rc.transform();
                 }
             }
         } else if (currentMode.equals(RobotMode.PORTABLE)) {
-            if (shortestDistance <= rc.getType().visionRadiusSquared || enemies.length > 0) {
+            if (shortestDistance <= rc.getType().actionRadiusSquared /* || enemies.length > 0 */) {
                 if (rc.canTransform()) {
-                    if (RobotPlayer.isLandSuitableForBuilding(rc, me)) {
-                        rc.transform();
-                    } else {
-                        for (Direction dir : RobotPlayer.directions) {
-                            MapLocation potentialLoc = rc.adjacentLocation(dir);
-                            if (rc.canMove(dir) && RobotPlayer.isLandSuitableForBuilding(rc, potentialLoc)) {
-                                rc.move(dir);
-                                rc.transform();
-                            } 
-                        }
-                    }
+                    RobotPlayer.stepOffRubble(rc, me);
+                    rc.transform();
+                    // if (RobotPlayer.isLandSuitableForBuilding(rc, me)) {
+                    //     rc.transform();
+                    // } else {
+                    //     for (Direction dir : RobotPlayer.directions) {
+                    //         MapLocation potentialLoc = rc.adjacentLocation(dir);
+                    //         if (rc.canMove(dir) && RobotPlayer.isLandSuitableForBuilding(rc, potentialLoc)) {
+                    //             rc.move(dir);
+                    //             if (rc.canTransform()) {
+                    //                 rc.transform();
+                    //             }
+                    //         } 
+                    //     }
+                    // }
                 }
             }
             // if (rc.canMove(me.directionTo(target))) {
-                RobotPlayer.move(rc, target);
+                RobotPlayer.move2(rc, target, 3);;
             // }
         }
     }

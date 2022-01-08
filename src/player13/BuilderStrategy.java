@@ -3,17 +3,28 @@ package player13;
 import battlecode.common.*;
 
 strictfp class BuilderStrategy {
-    static boolean selfDestruct = RobotPlayer.rng.nextBoolean();
+    static boolean selfDestruct = RobotPlayer.rng.nextInt(4) == 1;
 
     static void run(RobotController rc) throws GameActionException {
+        int start = Clock.getBytecodeNum();
         MapLocation me = rc.getLocation();
-        // if (selfDestruct && rc.senseLead(me) == 0 && rc.senseGold(me) == 0) {
-        //     rc.disintegrate();
-        // }
+        int round = rc.getRoundNum();
+
+        if (round < 19) {
+            selfDestruct = true;
+        }
+
+        if (selfDestruct && rc.getRoundNum() < 400 && rc.senseLead(me) == 0 && rc.senseGold(me) == 0 && rc.senseRubble(me) == 0) {
+            rc.disintegrate();
+        }
 
         SharedArrayTargetAndIndex targetAndIndex = RobotPlayer.locateCombatTarget(rc, me);
         MapLocation target = targetAndIndex.location;
         // int indexOfTarget = targetAndIndex.idx;
+
+        if (round < 100) {
+            target = RobotPlayer.getRandomMapLocation();
+        }
 
         Team opponent = rc.getTeam().opponent();
         Team player = rc.getTeam();
@@ -47,16 +58,22 @@ strictfp class BuilderStrategy {
             }
         }
 
-        Direction dir = me.directionTo(target);
-        rc.setIndicatorString(target.toString());
+        int end = Clock.getBytecodeNum();
+        rc.setIndicatorString("" + (end - start));
 
-        while (true) {
+
+        Direction dir = me.directionTo(target);
+        if (round < 200 && !repairing) {
+            dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
+        }
+
+        for (int i = 0; i < 9; i++) {
             if (rc.canMove(dir)) {
                 rc.move(dir);
                 break;
             } else {
                 dir = dir.rotateLeft();
-                if (dir == me.directionTo(target)) {
+                if (dir.equals(me.directionTo(target))) {
                     break;
                 }
             }

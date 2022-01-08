@@ -37,6 +37,10 @@ strictfp class SoldierStrategy {
         MapLocation secondaryTarget = localTargets.secondary;
         MapLocation tertiaryTarget = localTargets.tertiary;
 
+        if (rc.getRoundNum() < 100) {
+            tertiaryTarget = rc.adjacentLocation(RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)]);
+        }
+
 
         if (rc.senseNearbyRobots(2, rc.getTeam()).length > 4) {
             RobotPlayer.move2(rc, primaryTarget, 3);
@@ -81,6 +85,9 @@ strictfp class SoldierStrategy {
             }
         } else {
             RobotPlayer.stepOffRubble(rc, me);
+        }
+        if (!rc.isActionReady() && rc.isMovementReady()) {
+            RobotPlayer.move(rc, rc.adjacentLocation(me.directionTo(primaryTarget).opposite()));
         }
         
         // rc.setIndicatorLine(me, target, 0, 1, 0);

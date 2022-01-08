@@ -1,7 +1,6 @@
 package player13;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 import battlecode.common.*;
 

@@ -2,10 +2,6 @@ package player13;
 
 import battlecode.common.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Random;
 
 class SharedArrayTargetAndIndex {
@@ -371,7 +367,7 @@ public strictfp class RobotPlayer {
     }
 
     static void move2(RobotController rc, MapLocation target, int recursionLimit) throws GameActionException {
-        int returnCode = simpleShortestPath(rc, rc.getLocation(), target, 0, 0, recursionLimit);
+        simpleShortestPath(rc, rc.getLocation(), target, 0, 0, recursionLimit);
     }
 
     static int simpleShortestPath(RobotController rc, MapLocation start, MapLocation target, int currentWeight, int recursionLevel, int recursionLimit) throws GameActionException {
@@ -427,16 +423,16 @@ public strictfp class RobotPlayer {
         return 1;
     }
 
-    static void simpleMove(RobotController rc, MapLocation start, MapLocation target) {
-        Direction initialDir = start.directionTo(target);
-        MapLocation left1 = rc.adjacentLocation(initialDir.rotateLeft());
-        MapLocation center1 = rc.adjacentLocation(initialDir);
-        MapLocation right1 = rc.adjacentLocation(initialDir.rotateRight());
+    // static void simpleMove(RobotController rc, MapLocation start, MapLocation target) {
+    //     Direction initialDir = start.directionTo(target);
+    //     MapLocation left1 = rc.adjacentLocation(initialDir.rotateLeft());
+    //     MapLocation center1 = rc.adjacentLocation(initialDir);
+    //     MapLocation right1 = rc.adjacentLocation(initialDir.rotateRight());
 
 
 
 
-    }
+    // }
     
 
     /** Best first search 
