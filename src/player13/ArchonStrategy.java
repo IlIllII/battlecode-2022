@@ -77,6 +77,8 @@ strictfp class ArchonStrategy {
 
     static void run(RobotController rc) throws GameActionException {
 
+        AnomalyScheduleEntry[] anomalies = rc.getAnomalySchedule();
+
         int randomInteger = RobotPlayer.rng.nextInt(100);
         int archonCount = rc.getArchonCount();
         int roundCutoff = 50;
@@ -92,6 +94,20 @@ strictfp class ArchonStrategy {
         // case our archon dies we don't want it locked.
         if (round % 10 == 0) {
             rc.writeSharedArray(1, 0);
+        }
+
+        // Repair before build to save lead in long run.
+        RobotInfo[] alliedLocs = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam());
+
+        for (RobotInfo ally : alliedLocs) {
+            if (!rc.isActionReady()) {
+                break;
+            }
+            if (ally.health < ally.type.health) {
+                if (rc.canRepair(ally.location)) {
+                    rc.repair(ally.location);
+                }
+            }
         }
 
         // Differential strategies based on round number

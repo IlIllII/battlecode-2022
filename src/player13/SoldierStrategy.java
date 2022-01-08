@@ -8,29 +8,28 @@ strictfp class SoldierStrategy {
     final static int ATTACK_RADIUS_SQUARED = myType.actionRadiusSquared;
     final static int ATTACK_RADIUS_SQUARED_WITHIN_ONE_MOVE = 20;
     static int longestTime = 0;
+    static MapLocation repairLocation;
+    static int aliveTime = 0;
+    static boolean healing = false;
 
     static void run(RobotController rc) throws GameActionException {  
         MapLocation me = rc.getLocation();
-        // boolean moving = true;
+
+        aliveTime++;
+        if (aliveTime == 2) {
+            repairLocation = me;
+        }
         
 
-        // Check for defensive, offensive, and random global target.
-        // Guaranteed to be non-null.
         SharedArrayTargetAndIndex indexAndTarget = RobotPlayer.locateCombatTarget(rc, me);
         MapLocation target = indexAndTarget.location;
         int sharedArrayIndex = indexAndTarget.idx;
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, RobotPlayer.opponent);
 
-        // First check if closest global target is a dangerous enemy.
-        // If so, attack it.
         RobotPlayer.attackGlobalTargetIfAble(rc, target, me);
 
 
 
-        // We want to prefer to attack soldiers, watchtowers, and sages.
-        // int enemiesInRange = 0;
-        // int distanceSquaredToDangerousEnemy = 100000;
-        // int distanceSquaredToBenignEnemy = 100000;
         TripleTarget localTargets = RobotPlayer.acquireLocalTargets(rc, target, enemies, me);
 
         MapLocation primaryTarget = localTargets.primary;
@@ -63,6 +62,15 @@ strictfp class SoldierStrategy {
         // }
 
         if (rc.isActionReady() && rc.isMovementReady()) {
+
+            if (healing || rc.getHealth() < (rc.getType().health / 4)) {
+                tertiaryTarget = repairLocation;
+                healing = true;
+            }
+
+            if (rc.getHealth() == rc.getType().health) {
+                healing = false;
+            }
 
             // Experimental move.
             int recursionLimit = 4;

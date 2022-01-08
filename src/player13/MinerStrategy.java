@@ -50,8 +50,17 @@ strictfp class MinerStrategy {
         return target;
     }
 
+    static MapLocation repairLocation;
+    static int age = 0;
+    static boolean healing = false;
+
     static void run(RobotController rc) throws GameActionException {
         MapLocation me = rc.getLocation();
+        age++;
+
+        if (age == 1) {
+            repairLocation = me;
+        }
 
         if (rc.canSenseLocation(globalTarget) && (rc.senseLead(globalTarget) == 0) || globalTarget.x == -100) {
             globalTarget = RobotPlayer.getRandomMapLocation();
@@ -99,6 +108,15 @@ strictfp class MinerStrategy {
                     }
                 }
             }
+        }
+
+        if (healing == true || rc.getHealth() < rc.getType().health / 3) {
+            healing = true;
+            target = repairLocation;
+        }
+
+        if (healing && rc.getHealth() == rc.getType().health) {
+            healing = false;
         }
 
         if (!fleeing) {
