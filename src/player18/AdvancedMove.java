@@ -1,4 +1,4 @@
-package player14;
+package player18;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
