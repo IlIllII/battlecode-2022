@@ -18,8 +18,7 @@ strictfp class BuilderStrategy {
             rc.disintegrate();
         }
 
-        SharedArrayTargetAndIndex targetAndIndex = RobotPlayer.locateCombatTarget(rc, me);
-        MapLocation target = targetAndIndex.location;
+        MapLocation target = RobotPlayer.locateCombatTarget(rc, me);
         // int indexOfTarget = targetAndIndex.idx;
 
         if (round < 100) {
@@ -63,20 +62,50 @@ strictfp class BuilderStrategy {
 
 
         Direction dir = me.directionTo(target);
-        if (round < 200 && !repairing) {
-            dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
-        }
 
-        for (int i = 0; i < 9; i++) {
-            if (rc.canMove(dir)) {
-                rc.move(dir);
-                break;
-            } else {
-                dir = dir.rotateLeft();
-                if (dir.equals(me.directionTo(target))) {
-                    break;
-                }
+        ArchonLocation[] archLocs = Comms.getArchonLocations(rc);
+
+        MapLocation moveTarget = new MapLocation(1000, 1000);
+        
+        boolean foundDefendee = false;
+        for (ArchonLocation archLoc : archLocs) {
+            if (archLoc.exists && archLoc.shouldDefend) {
+                foundDefendee = true;
+                if (me.distanceSquaredTo(archLoc.location) < me.distanceSquaredTo(moveTarget)) {
+                    moveTarget = archLoc.location;
+                } 
             }
         }
+        
+        if (foundDefendee) {
+            target = moveTarget;
+        }
+        
+
+        // if (round < 50 && !repairing) {
+        //     dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
+        // }
+
+        if (foundDefendee && !repairing) {
+            RobotPlayer.move2(rc, target, 2);
+        } else if (me.distanceSquaredTo(moveTarget) < 25 && !repairing) {
+            moveTarget = RobotPlayer.getRandomMapLocation();
+            RobotPlayer.move2(rc, target, 2);
+        }
+
+        RobotPlayer.move2(rc, target, 2);
+
+
+        // for (int i = 0; i < 9; i++) {
+        //     if (rc.canMove(dir)) {
+        //         rc.move(dir);
+        //         break;
+        //     } else {
+        //         dir = dir.rotateLeft();
+        //         if (dir.equals(me.directionTo(target))) {
+        //             break;
+        //         }
+        //     }
+        // }
     }
 }

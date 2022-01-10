@@ -10,9 +10,7 @@ strictfp class WatchtowerStrategy {
     static void run(RobotController rc) throws GameActionException {
         MapLocation me = rc.getLocation();
         
-        SharedArrayTargetAndIndex indexAndTarget = RobotPlayer.locateCombatTarget(rc, me);
-        MapLocation target = indexAndTarget.location;
-        int sharedArrayIndex = indexAndTarget.idx;
+        MapLocation target = RobotPlayer.locateCombatTarget(rc, me);
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, RobotPlayer.opponent);
 
 
@@ -35,9 +33,7 @@ strictfp class WatchtowerStrategy {
         if (currentMode.equals(RobotMode.TURRET)) {
             if (rc.canAttack(primaryTarget)) {
                 rc.attack(primaryTarget);
-                if (sharedArrayIndex != -1) {
-                    RobotPlayer.addLocationToSharedArray(rc, primaryTarget, 0, sharedArrayIndex);
-                }
+                Comms.setEnemyLocation(rc, primaryTarget);
             }
 
             if (rc.canAttack(secondaryTarget)) {

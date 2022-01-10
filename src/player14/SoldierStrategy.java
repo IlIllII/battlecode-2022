@@ -12,8 +12,14 @@ strictfp class SoldierStrategy {
     static int aliveTime = 0;
     static boolean healing = false;
 
-    static void run(RobotController rc) throws GameActionException {  
+    static BFS bfs;
+
+    static void run(RobotController rc) throws GameActionException { 
         MapLocation me = rc.getLocation();
+
+        // if (aliveTime == 0) {
+        //     bfs = new AdvancedMove(rc);
+        // }
 
         aliveTime++;
         if (aliveTime == 2) {
@@ -21,9 +27,7 @@ strictfp class SoldierStrategy {
         }
         
 
-        SharedArrayTargetAndIndex indexAndTarget = RobotPlayer.locateCombatTarget(rc, me);
-        MapLocation target = indexAndTarget.location;
-        int sharedArrayIndex = indexAndTarget.idx;
+        MapLocation target = RobotPlayer.locateCombatTarget(rc, me);
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, RobotPlayer.opponent);
 
         RobotPlayer.attackGlobalTargetIfAble(rc, target, me);
@@ -46,9 +50,7 @@ strictfp class SoldierStrategy {
         }
         if (rc.canAttack(primaryTarget)) {
             rc.attack(primaryTarget);
-            if (sharedArrayIndex != -1) {
-                RobotPlayer.addLocationToSharedArray(rc, primaryTarget, 0, sharedArrayIndex);
-            }
+            Comms.setEnemyLocation(rc, primaryTarget);
         }
         if (rc.canAttack(secondaryTarget)) {
             rc.attack(secondaryTarget);
@@ -64,11 +66,30 @@ strictfp class SoldierStrategy {
         if (rc.isActionReady() && rc.isMovementReady()) {
 
             if (healing || rc.getHealth() < (rc.getType().health / 4)) {
-                tertiaryTarget = repairLocation;
+
+                ArchonLocation[] archLocs = Comms.getArchonLocations(rc);
+
+                MapLocation repairLoc = null;
+
+                boolean foundRepairSpot = false;
+
+                while (!foundRepairSpot) {
+                    for (ArchonLocation archLoc : archLocs) {
+                        // if (repairLoc == null || (archLoc.exists && me.distanceSquaredTo(repairLoc) > me.distanceSquaredTo(archLoc.location))) {
+                        //     repairLoc = archLoc.location;
+                        // }
+                        if (archLoc.exists && RobotPlayer.rng.nextInt(4) == 0) {
+                            repairLoc = archLoc.location;
+                            foundRepairSpot = true;
+                        }
+                    }
+                }
+
+                tertiaryTarget = repairLoc;
                 healing = true;
             }
 
-            if (rc.getHealth() == rc.getType().health) {
+            if (rc.getHealth() > rc.getType().health - 3) {
                 healing = false;
             }
 
@@ -78,13 +99,37 @@ strictfp class SoldierStrategy {
             if (Clock.getBytecodesLeft() <= longestTime + 1000) {
                 recursionLimit = 3;
             }
-            RobotPlayer.move2(rc, tertiaryTarget, recursionLimit);
+
+
+
+            // double normalDistance = Math.sqrt(rc.getType().visionRadiusSquared);
+            // double angle = Math.tan((tertiaryTarget.x - me.x) / (tertiaryTarget.y - me.y));
+            // int xDistance = Math.round((float)(Math.cos(angle) * normalDistance));
+            // int yDistance = Math.round((float)(Math.sin(angle) * normalDistance));
+
+            // MapLocation newTarget = new MapLocation(me.x + xDistance, me.y + yDistance);
+
+
+            
+            try {
+                Direction dir = AdvancedMove.getBestDir(rc, tertiaryTarget);
+                if (rc.canMove(dir)) {
+                    rc.move(dir);
+                }
+            } catch (Exception e) {
+                //TODO: handle exception
+                System.out.println("Move returned null");;
+            }
+            // RobotPlayer.move2(rc, tertiaryTarget, recursionLimit);
+
+
             int end = Clock.getBytecodeNum();
 
             if ((end - startTime) > longestTime) {
                 longestTime = (end - startTime);
             }
             rc.setIndicatorString("" + longestTime);
+            rc.setIndicatorLine(me, tertiaryTarget, 1000, 0, 1000);;
 
             // Fall back to simple move incase other move doesn't work.
             RobotPlayer.move(rc, tertiaryTarget);
@@ -99,7 +144,12 @@ strictfp class SoldierStrategy {
             RobotPlayer.stepOffRubble(rc, me);
         }
         if (!rc.isActionReady() && rc.isMovementReady()) {
-            RobotPlayer.move(rc, rc.adjacentLocation(me.directionTo(primaryTarget).opposite()));
+            MapLocation retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
+            retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
+            retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
+            retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
+            retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
+            RobotPlayer.move(rc, retreatMove);
         }
         
         // rc.setIndicatorLine(me, target, 0, 1, 0);

@@ -8,6 +8,8 @@ strictfp class ArchonStrategy {
     static int[] sharedArray = new int[64];
     static int radiusSquared = RobotType.ARCHON.visionRadiusSquared;
 
+
+
     // Bytecodes:
     // Builds a unit in target direction. If target direction is CENTER, picks dir randomly.
     static void buildUnit(RobotController rc, RobotType type, Direction dir) throws GameActionException {
@@ -75,59 +77,24 @@ strictfp class ArchonStrategy {
         }
     }
 
-    static void run(RobotController rc) throws GameActionException {
-
-        AnomalyScheduleEntry[] anomalies = rc.getAnomalySchedule();
+    static void executeBuildStrategy(RobotController rc, MapLocation me, int round, int leadAmount, int archonCount, int roundCutoff) throws GameActionException {
 
         int randomInteger = RobotPlayer.rng.nextInt(100);
-        int archonCount = rc.getArchonCount();
-        int roundCutoff = 50;
-        if (archonCount <= 2) {
-            roundCutoff = 20;
-        }
-        int id = (rc.getID() - 1) / 2;
-        int round = rc.getRoundNum();
-        int leadAmount = rc.getTeamLeadAmount(rc.getTeam());
-        MapLocation me = rc.getLocation();
 
-        // We want to reset the defend position in shared array occasionally in
-        // case our archon dies we don't want it locked.
-        if (round % 10 == 0) {
-            rc.writeSharedArray(1, 0);
-        }
-
-        // Repair before build to save lead in long run.
-        RobotInfo[] alliedLocs = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam());
-
-        for (RobotInfo ally : alliedLocs) {
-            if (!rc.isActionReady()) {
-                break;
-            }
-            if (ally.health < ally.type.health) {
-                if (rc.canRepair(ally.location)) {
-                    rc.repair(ally.location);
-                }
-            }
-        }
-
-        // Differential strategies based on round number
         if (round == 1) { // Set targets and build a miner if we see lead
             MapLocation firstTarget = reflectedLocation(me, rc.getMapWidth(), rc.getMapHeight());
             int bitvector = 0;
             bitvector += firstTarget.y;
             bitvector += firstTarget.x << 6;
-            int existingLocation = rc.readSharedArray(0);
-            if (existingLocation == 0) {
-                rc.writeSharedArray(0, bitvector);
+            
+            EnemyLocation enemyArch = Comms.getOffensiveLocation(rc);
+
+            if (!enemyArch.exists) {
+                Comms.setOffensiveLocation(rc, firstTarget);
             } else {
-                int x = (existingLocation & (63 << 6)) >> 6;
-                int y = (existingLocation & 63);
-                if (x == me.x && y == me.y) {
+                if (enemyArch.location.equals(me)) {
                     firstTarget = rotatedLocation(me, rc.getMapWidth(), rc.getMapHeight());
-                    bitvector = 0;
-                    bitvector += firstTarget.y;
-                    bitvector += firstTarget.x << 6;
-                    rc.writeSharedArray(0, bitvector);
+                    Comms.setOffensiveLocation(rc, firstTarget);
                 }
             }
 
@@ -152,53 +119,182 @@ strictfp class ArchonStrategy {
             if (randomInteger < (100 / archonCount) / 8) {
                 buildUnit(rc, RobotType.MINER, Direction.CENTER);
             }
-            if (leadAmount > 200) {
+            if (leadAmount > 100) {
                 buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
             }
             buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
         } else {
-            int n = RobotPlayer.rng.nextInt(10);
-            if (leadAmount < 200) {
-                if (randomInteger < (100 / archonCount)) {
-                    if (n < 8) {
-                        buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-                    } else {
-                        buildUnit(rc, RobotType.MINER, Direction.CENTER);
-                    }
-                }
-            } else {
-                if (n < 7) {
+            int n = RobotPlayer.rng.nextInt(100);
+            if (randomInteger < 25 || leadAmount >= 150) {
+                if (n < 60) {
                     buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-                } else if (n < 8) {
+                } else if (n < 98) {
                     buildUnit(rc, RobotType.MINER, Direction.CENTER);
                 } else {
                     buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
                 }
             }
+            
         }
+    }
+
+    static boolean goingTowardMainArchon = true;
+    static int transformTimer = 100;
+    static int movingCounter = 0;
+    static int repairCount = 0;
+
+    static void run(RobotController rc) throws GameActionException {
+
+        transformTimer++;
+        
+        int archonCount = rc.getArchonCount();
+        int roundCutoff = 50;
+        if (archonCount <= 2) {
+            roundCutoff = 20;
+        }
+
+        MapLocation target = new MapLocation(1000, 1000);
+
+
+        int rcId = rc.getID();
+        int id = rcId % 2 == 0 ? (rcId - 1) / 2 : (rcId - 2) / 2;
+        int round = rc.getRoundNum();
+        int leadAmount = rc.getTeamLeadAmount(rc.getTeam());
+        MapLocation me = rc.getLocation();
+        boolean movingAndFighting = false;
+        
+        RobotInfo[] enemiesInRange = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        RobotInfo[] alliedLocs = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam());
+
+        boolean dangerClose = false;
+
+        for (RobotInfo enemy : enemiesInRange) {
+            if (enemy.type.equals(RobotType.SOLDIER) || enemy.type.equals(RobotType.SAGE) || enemy.type.equals(RobotType.WATCHTOWER) || enemy.type.equals(RobotType.MINER)) {
+                dangerClose = true;
+            }
+        }
+
+
+        if (round < 30) {
+            executeBuildStrategy(rc, me, round, leadAmount, archonCount, roundCutoff);
+        } else if (id == 0) {
+
+            // clear shared buffer
+            for (int i = 2; i < 64; i++) {
+                rc.writeSharedArray(i, 0);
+            }
+            movingAndFighting = false;
+            executeBuildStrategy(rc, me, round, leadAmount, archonCount, roundCutoff);
+        } else {
+            movingAndFighting = true;
+        }
+
+
+        // Repair before build to save lead in long run.
+
+        for (RobotInfo ally : alliedLocs) {
+            if (!rc.isActionReady()) {
+                break;
+            }
+            if (ally.health < ally.type.health) {
+                if (rc.canRepair(ally.location)) {
+                    rc.repair(ally.location);
+                    repairCount++;
+                }
+            }
+        }
+
+        if (movingAndFighting) {
+
+
+            EnemyLocation oTarget = Comms.getOffensiveLocation(rc);
+            MapLocation[] targets = Comms.getEnemyLocations(rc);
+
+            for (MapLocation loc : targets) {
+                if (me.distanceSquaredTo(loc) < me.distanceSquaredTo(target)) {
+                    target = loc;
+                }
+            }
+
+            if (oTarget.exists && me.distanceSquaredTo(oTarget.location) < me.distanceSquaredTo(target)) {
+                target = oTarget.location;
+            }
+            
+
+            int distanceToTarget = (int)Math.sqrt(me.distanceSquaredTo(target));
+            int visionDistance = (int)Math.sqrt(rc.getType().visionRadiusSquared);
+
+            if (rc.getMode() == RobotMode.TURRET) {
+                if (rc.canTransform()) {
+                    if (distanceToTarget > visionDistance + 10 && !dangerClose && transformTimer > 100) {
+                        rc.transform();
+                        transformTimer = 0;
+                    }
+                } else {
+                    if (rc.isActionReady()) {
+                        executeBuildStrategy(rc, me, round, leadAmount, archonCount, roundCutoff);
+                    }
+                }
+            }
+
+            if (rc.getMode() == RobotMode.PORTABLE) {
+                movingCounter++;
+
+                if (goingTowardMainArchon) {
+                    target = Comms.getArchonLocations(rc)[0].location;
+
+                    if (me.distanceSquaredTo(target) <= 25) {
+                        goingTowardMainArchon = false;
+                    }
+                }
+
+                if (round >= 100 && (distanceToTarget < visionDistance || dangerClose || movingCounter > 30) && !goingTowardMainArchon) {
+                    if (rc.canTransform() && rc.senseRubble(me) < 10) {
+                        rc.transform();
+                        movingCounter = 0;
+                    } else { // flee
+                        RobotPlayer.move2(rc, rc.adjacentLocation(me.directionTo(target).opposite()), 1);
+                    }
+                } else {
+                    RobotPlayer.move2(rc, target, 4);
+                }
+            }
+        } else {
+            if (rc.getMode() == RobotMode.PORTABLE) {
+                if (rc.canTransform()) {
+                    rc.transform();
+                }
+            }
+        }
+
+        // Differential strategies based on round number
 
         Team tm = rc.getTeam();
         int leadAmt = rc.getTeamLeadAmount(tm);
-        rc.setIndicatorString("" + leadAmt);
 
-        // int start = Clock.getBytecodeNum();
         // if (rc.readSharedArray(2) == 0) {
-
-        for (int i = 2; i < 64; i++) {
-            rc.writeSharedArray(i, 0);
-        }
-
-        // int end = Clock.getBytecodeNum();
-        // rc.setIndicatorString("" + (end - start));
+            
+        
         
 
         RobotInfo[] enemyLocs = rc.senseNearbyRobots(radiusSquared, RobotPlayer.opponent);
 
         if (enemyLocs.length > 0) {
-            MapLocation enemyLocation = enemyLocs[0].location;
-            setDefendLocation(rc, enemyLocation, id);
+            // MapLocation enemyLocation = enemyLocs[0].location;
+            // setDefendLocation(rc, enemyLocation, id);
+
+            Comms.setArchonLocation(rc, me, true, id);
+
         } else {
-            resetDefendLocation(rc, id);
+            Comms.setArchonLocation(rc, me, false, id);
         }
+
+        // int start = Clock.getBytecodeNum();
+        // EnemyLocation target = Comms.getOffensiveLocation(rc);
+        // int end = Clock.getBytecodeNum();
+        // rc.setIndicatorString("set loc: " + (end - start));
+
+        rc.setIndicatorLine(me, target, 100, 100, 100);
+        rc.setIndicatorString("Repairs: " + repairCount);
     }
 }
