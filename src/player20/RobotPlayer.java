@@ -1,4 +1,4 @@
-package player19;
+package player20;
 
 import battlecode.common.*;
 
@@ -104,38 +104,6 @@ public strictfp class RobotPlayer {
                 if (enemy.health < lowestHPBenignEnemy) {
                     secondaryTarget = enemy.location;
                     lowestHPBenignEnemy = enemy.health;
-                }
-            } else {
-                tertiaryTarget = enemy.location;
-            }
-        }
-
-        return new TripleTarget(primaryTarget, secondaryTarget, tertiaryTarget);
-    }
-
-    static TripleTarget acquireLocalTargetsMaxHealth(RobotController rc, MapLocation globalTarget, RobotInfo[] enemies,
-            MapLocation me) throws GameActionException {
-        int highestHPDangerousEnemy = 0;
-        int highestHPBenignEnemy = 0;
-        MapLocation primaryTarget = globalTarget;
-        MapLocation secondaryTarget = globalTarget;
-        MapLocation tertiaryTarget = globalTarget;
-
-        for (RobotInfo enemy : enemies) {
-            if (enemy.type.equals(RobotType.ARCHON)) {
-                Comms.setOffensiveLocation(rc, enemy.location);
-            }
-            int distanceSquaredToEnemy = me.distanceSquaredTo(enemy.location);
-            if (distanceSquaredToEnemy <= actionRadiusSquared && (enemy.type.equals(RobotType.SOLDIER)
-                    || enemy.type.equals(RobotType.SAGE) || enemy.type.equals(RobotType.WATCHTOWER))) {
-                if (enemy.health > highestHPDangerousEnemy) {
-                    primaryTarget = enemy.location;
-                    highestHPDangerousEnemy = enemy.health;
-                }
-            } else if (distanceSquaredToEnemy <= actionRadiusSquared) {
-                if (enemy.health > highestHPBenignEnemy) {
-                    secondaryTarget = enemy.location;
-                    highestHPBenignEnemy = enemy.health;
                 }
             } else {
                 tertiaryTarget = enemy.location;

@@ -1,4 +1,4 @@
-package player19;
+package player20;
 
 import battlecode.common.*;
 
@@ -14,9 +14,6 @@ strictfp class SageStrategy {
     static boolean healing = false;
     static MapLocation backupLocation = RobotPlayer.getRandomMapLocation();
     static MapLocation lastLocation = new MapLocation(0, 0);
-
-
-
 
     
     static void run(RobotController rc) throws GameActionException {
@@ -40,11 +37,11 @@ strictfp class SageStrategy {
         MapLocation target = RobotPlayer.locateCombatTarget(rc, me, backupLocation);
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, RobotPlayer.opponent);
 
-        // RobotPlayer.attackGlobalTargetIfAble(rc, target, me);
+        RobotPlayer.attackGlobalTargetIfAble(rc, target, me);
 
 
 
-        TripleTarget localTargets = RobotPlayer.acquireLocalTargetsMaxHealth(rc, target, enemies, me);
+        TripleTarget localTargets = RobotPlayer.acquireLocalTargets(rc, target, enemies, me);
 
         MapLocation primaryTarget = localTargets.primary;
         MapLocation secondaryTarget = localTargets.secondary;
@@ -58,54 +55,50 @@ strictfp class SageStrategy {
         if (rc.senseNearbyRobots(2, rc.getTeam()).length > 4) {
             RobotPlayer.move2(rc, primaryTarget, 2);
         }
-        if (rc.senseRubble(rc.getLocation()) <= 0) {
-            if (rc.canAttack(primaryTarget)) {
-                rc.attack(primaryTarget);
-                Comms.setEnemyLocation(rc, primaryTarget);
-            }
-            if (rc.canAttack(secondaryTarget)) {
-                rc.attack(secondaryTarget);
-            }
-            if (rc.canAttack(tertiaryTarget)) {
-                rc.attack(tertiaryTarget);
-            }
+        if (rc.canAttack(primaryTarget)) {
+            rc.attack(primaryTarget);
+            Comms.setEnemyLocation(rc, primaryTarget);
+        }
+        if (rc.canAttack(secondaryTarget)) {
+            rc.attack(secondaryTarget);
+        }
+        if (rc.canAttack(tertiaryTarget)) {
+            rc.attack(tertiaryTarget);
         }
 
         // if (rc.senseNearbyRobots(-1, rc.getTeam()).length < 5 /* && rc.canSenseLocation(primaryTarget) && rc.canSenseRobotAtLocation(primaryTarget) && rc.senseRobotAtLocation(primaryTarget).type.equals(RobotType.SOLDIER) */ ) {
         //     RobotPlayer.move2(rc, rc.adjacentLocation(me.directionTo(primaryTarget).opposite()).add(me.directionTo(primaryTarget)), 3);
         // }
 
-        if (healing || rc.getHealth() < (rc.getType().health / 4) || !rc.isActionReady()) {
+        if (rc.isMovementReady()) {
 
-            ArchonLocation[] archLocs = Comms.getArchonLocations(rc);
+            if (healing || rc.getHealth() < (rc.getType().health / 4) || !rc.isActionReady()) {
 
-            MapLocation repairLoc = null;
+                ArchonLocation[] archLocs = Comms.getArchonLocations(rc);
 
-            boolean foundRepairSpot = false;
+                MapLocation repairLoc = null;
 
-            while (!foundRepairSpot) {
-                for (ArchonLocation archLoc : archLocs) {
-                    // if (repairLoc == null || (archLoc.exists && me.distanceSquaredTo(repairLoc) > me.distanceSquaredTo(archLoc.location))) {
-                    //     repairLoc = archLoc.location;
-                    // }
-                    if (archLoc.exists && RobotPlayer.rng.nextInt(4) == 0) {
-                        repairLoc = archLoc.location;
-                        foundRepairSpot = true;
+                boolean foundRepairSpot = false;
+
+                while (!foundRepairSpot) {
+                    for (ArchonLocation archLoc : archLocs) {
+                        // if (repairLoc == null || (archLoc.exists && me.distanceSquaredTo(repairLoc) > me.distanceSquaredTo(archLoc.location))) {
+                        //     repairLoc = archLoc.location;
+                        // }
+                        if (archLoc.exists && RobotPlayer.rng.nextInt(4) == 0) {
+                            repairLoc = archLoc.location;
+                            foundRepairSpot = true;
+                        }
                     }
                 }
+
+                tertiaryTarget = repairLoc;
+                healing = true;
             }
 
-            tertiaryTarget = repairLoc;
-            healing = true;
-        }
-
-        if (rc.getHealth() > rc.getType().health / 2 && rc.getActionCooldownTurns() < 80) {
-            healing = false;
-        }
-
-        if (rc.isActionReady() && rc.isMovementReady()) {
-
-            
+            if (rc.getHealth() > rc.getType().health && rc.getActionCooldownTurns() < 5) {
+                healing = false;
+            }
 
             // Experimental move.
             int startTime = Clock.getBytecodeNum();
@@ -147,19 +140,19 @@ strictfp class SageStrategy {
 
             // RobotPlayer.move(rc, tertiaryTarget);
 
-            if (rc.canAttack(tertiaryTarget) && rc.senseRubble(rc.getLocation()) == 0) {
+            if (rc.canAttack(tertiaryTarget)) {
                 rc.attack(tertiaryTarget);
             }
         } /* else {
             RobotPlayer.stepOffRubble(rc, me);
         } */
         if (!rc.isActionReady() && rc.isMovementReady()) {
-            Direction moveDir = AdvancedMove.getBestDir(rc, tertiaryTarget);
-            if (rc.canMove(moveDir)) {
-                rc.move(moveDir);
-            }
-        }
-
-        rc.setIndicatorString("" + rc.getActionCooldownTurns());
+            MapLocation retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
+            retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
+            retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
+            retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
+            retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
+            RobotPlayer.move(rc, retreatMove);
+        }   
     }
 }

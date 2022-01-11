@@ -13,6 +13,11 @@ strictfp class SoldierStrategy {
     static boolean healing = false;
     static MapLocation backupLocation = RobotPlayer.getRandomMapLocation();
     static MapLocation lastLocation = new MapLocation(0, 0);
+    static boolean selfDestructing = false;
+    static boolean foundRepairSpot = false;
+    static MapLocation repairLoc = new MapLocation(1000, 1000);
+
+
 
     static BFS bfs;
 
@@ -37,7 +42,7 @@ strictfp class SoldierStrategy {
         MapLocation target = RobotPlayer.locateCombatTarget(rc, me, backupLocation);
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, RobotPlayer.opponent);
 
-        RobotPlayer.attackGlobalTargetIfAble(rc, target, me);
+        // RobotPlayer.attackGlobalTargetIfAble(rc, target, me);
 
 
 
@@ -52,7 +57,7 @@ strictfp class SoldierStrategy {
         // }
 
 
-        if (rc.senseNearbyRobots(2, rc.getTeam()).length > 4) {
+        if (rc.senseNearbyRobots(2, rc.getTeam()).length > 4 && !selfDestructing) {
             RobotPlayer.move2(rc, primaryTarget, 2);
         }
         if (rc.canAttack(primaryTarget)) {
@@ -66,6 +71,35 @@ strictfp class SoldierStrategy {
             rc.attack(tertiaryTarget);
         }
 
+        if (selfDestructing) {
+            MapLocation minTile = null;
+            double minDistance = 10000;
+
+            if (rc.senseLead(me) == 0) {
+                rc.disintegrate();
+            }
+
+            MapLocation[] tilesNearMe = rc.getAllLocationsWithinRadiusSquared(me, 100);
+
+            for (MapLocation tile : tilesNearMe) {
+                if (rc.canSenseLocation(tile) && rc.senseLead(tile) == 0 && rc.senseGold(tile) == 0 && me.distanceSquaredTo(tile) < minDistance) {
+                    minTile = tile;
+                    minDistance = me.distanceSquaredTo(tile);
+                }
+            }
+
+            if (minTile != null) {
+                RobotPlayer.move2(rc, minTile, 2);
+            } else {
+                RobotPlayer.move(rc, primaryTarget);
+            }
+            if (rc.senseLead(me) == 0) {
+                rc.disintegrate();
+            }
+
+
+        }
+
         // if (rc.senseNearbyRobots(-1, rc.getTeam()).length < 5 /* && rc.canSenseLocation(primaryTarget) && rc.canSenseRobotAtLocation(primaryTarget) && rc.senseRobotAtLocation(primaryTarget).type.equals(RobotType.SOLDIER) */ ) {
         //     RobotPlayer.move2(rc, rc.adjacentLocation(me.directionTo(primaryTarget).opposite()).add(me.directionTo(primaryTarget)), 3);
         // }
@@ -76,9 +110,7 @@ strictfp class SoldierStrategy {
 
                 ArchonLocation[] archLocs = Comms.getArchonLocations(rc);
 
-                MapLocation repairLoc = null;
 
-                boolean foundRepairSpot = false;
 
                 while (!foundRepairSpot) {
                     for (ArchonLocation archLoc : archLocs) {
@@ -92,8 +124,12 @@ strictfp class SoldierStrategy {
                     }
                 }
 
-                tertiaryTarget = repairLoc;
+                primaryTarget = repairLoc;
                 healing = true;
+            }
+
+            if (rc.getHealth() < rc.getType().health / 2 && me.distanceSquaredTo(repairLoc) <= 4) {
+                selfDestructing = true;
             }
 
             if (rc.getHealth() > rc.getType().health - 3) {
@@ -107,15 +143,15 @@ strictfp class SoldierStrategy {
 
             
             try {
-                Direction dir = AdvancedMove.getBestDir(rc, tertiaryTarget);
+                Direction dir = AdvancedMove.getBestDir(rc, primaryTarget);
 
                 if (dir != null && !dir.equals(Direction.CENTER) && rc.canMove(dir)) {
                     if (!rc.adjacentLocation(dir).equals(lastLocation)) {
                         rc.move(dir);
                         lastLocation = rc.getLocation();
                     } else {
-                        if (rc.canMove(rc.getLocation().directionTo(tertiaryTarget))) {
-                            RobotPlayer.move(rc, tertiaryTarget);
+                        if (rc.canMove(rc.getLocation().directionTo(primaryTarget))) {
+                            RobotPlayer.move(rc, primaryTarget);
                         }
                     }
                 }
@@ -132,10 +168,10 @@ strictfp class SoldierStrategy {
                 longestTime = (end - startTime);
             }
             rc.setIndicatorString("" + longestTime);
-            rc.setIndicatorLine(me, tertiaryTarget, 1000, 0, 1000);;
+            rc.setIndicatorLine(me, primaryTarget, 1000, 0, 1000);;
 
             // Fall back to simple move incase other move doesn't work.
-            RobotPlayer.move(rc, tertiaryTarget);
+            RobotPlayer.move(rc, primaryTarget);
 
 
             // RobotPlayer.move(rc, tertiaryTarget);
@@ -143,9 +179,8 @@ strictfp class SoldierStrategy {
             if (rc.canAttack(tertiaryTarget)) {
                 rc.attack(tertiaryTarget);
             }
-        } /* else {
-            RobotPlayer.stepOffRubble(rc, me);
-        } */
+        }
+        
         if (!rc.isActionReady() && rc.isMovementReady()) {
             MapLocation retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
             retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
@@ -154,6 +189,26 @@ strictfp class SoldierStrategy {
             retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
             RobotPlayer.move(rc, retreatMove);
         }
+
+
+        // try {
+        //     Direction dir = AdvancedMove.getBestDir(rc, primaryTarget);
+
+        //     if (dir != null && !dir.equals(Direction.CENTER) && rc.canMove(dir)) {
+        //         if (!rc.adjacentLocation(dir).equals(lastLocation)) {
+        //             rc.move(dir);
+        //             lastLocation = rc.getLocation();
+        //         } else {
+        //             if (rc.canMove(rc.getLocation().directionTo(tertiaryTarget))) {
+        //                 RobotPlayer.move(rc, tertiaryTarget);
+        //             }
+        //         }
+        //     }
+        // } catch (Exception e) {
+        //     //TODO: handle exception
+        //     System.out.println("Move returned null");;
+        // }
+        RobotPlayer.stepOffRubble(rc, me);
         
         // rc.setIndicatorLine(me, target, 0, 1, 0);
     }

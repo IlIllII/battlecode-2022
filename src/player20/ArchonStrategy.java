@@ -1,4 +1,4 @@
-package player19;
+package player20;
 
 
 import battlecode.common.*;
@@ -106,7 +106,7 @@ strictfp class ArchonStrategy {
                     break;
                 }
             }
-        } else if (rc.getTeamGoldAmount(rc.getTeam()) >= 50) {
+        } else if (rc.getTeamGoldAmount(rc.getTeam()) > 50) {
             buildUnit(rc, RobotType.SAGE, Direction.CENTER);
         } else if (round < roundCutoff) {
             if (randomInteger < (100 / archonCount)) {
@@ -147,7 +147,6 @@ strictfp class ArchonStrategy {
     static int transformTimer = 100;
     static int movingCounter = 0;
     static int repairCount = 0;
-    static boolean justBuiltMiner;
 
     static void run(RobotController rc) throws GameActionException {
 
@@ -195,15 +194,8 @@ strictfp class ArchonStrategy {
             }
             movingAndFighting = false;
             executeBuildStrategy(rc, me, round, leadAmount, archonCount, roundCutoff);
-        } else if (id != 0) {
-
+        } else {
             executeBuildStrategy(rc, me, round, leadAmount, archonCount, roundCutoff);
-
-            // * Disintregration for sage strategy
-            // if (rc.canBuildRobot(RobotType.MINER, Direction.NORTH) || rc.canBuildRobot(RobotType.MINER, Direction.EAST) || rc.canBuildRobot(RobotType.MINER, Direction.WEST) || rc.canBuildRobot(RobotType.MINER, Direction.SOUTH)) {
-            //     buildUnit(rc, RobotType.MINER, Direction.CENTER);
-            //     rc.disintegrate();
-            // }
         }
 
 
@@ -294,7 +286,7 @@ strictfp class ArchonStrategy {
         
         
 
-        RobotInfo[] enemyLocs = rc.senseNearbyRobots(radiusSquared, rc.getTeam().opponent());
+        RobotInfo[] enemyLocs = rc.senseNearbyRobots(radiusSquared, RobotPlayer.opponent);
 
         if (enemyLocs.length > 0) {
             // MapLocation enemyLocation = enemyLocs[0].location;

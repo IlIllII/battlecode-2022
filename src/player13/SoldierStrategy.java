@@ -78,7 +78,17 @@ strictfp class SoldierStrategy {
             if (Clock.getBytecodesLeft() <= longestTime + 1000) {
                 recursionLimit = 3;
             }
-            RobotPlayer.move2(rc, tertiaryTarget, recursionLimit);
+
+            try {
+                Direction moveDir = AdvancedMove.getBestDir(rc, tertiaryTarget);
+                if (rc.canMove(moveDir)) {
+                    rc.move(moveDir);
+                }
+            } catch (Exception e) {
+                //TODO: handle exception
+                RobotPlayer.move2(rc, tertiaryTarget, recursionLimit);
+            }
+
             int end = Clock.getBytecodeNum();
 
             if ((end - startTime) > longestTime) {
