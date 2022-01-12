@@ -1,4 +1,4 @@
-package player20;
+package player20test;
 
 import battlecode.common.*;
 
@@ -20,7 +20,9 @@ strictfp class BuilderStrategy {
             rc.disintegrate();
         }
 
-        MapLocation target = RobotPlayer.locateCombatTarget(rc, me, backupLocation);
+        CombatTargetAndEnemyLocs combatTargetAndEnemyLocs = RobotPlayer.locateCombatTarget(rc, me, backupLocation);
+        MapLocation target = combatTargetAndEnemyLocs.target;
+        EnemyLocation[] enemyLocations = combatTargetAndEnemyLocs.locations;
         // int indexOfTarget = targetAndIndex.idx;
 
         if (round < 100) {
@@ -46,7 +48,7 @@ strictfp class BuilderStrategy {
             if (rc.canRepair(repairSpot)) {
                 rc.repair(repairSpot);
             }
-        } else if (rc.senseNearbyRobots(-1, opponent).length < 2) {
+        } else if (rc.senseNearbyRobots(-1, opponent).length < 3) {
             for (int i = 1; i < RobotPlayer.directions.length; i += 2) {
                 if (rc.canBuildRobot(RobotType.WATCHTOWER, RobotPlayer.directions[i])) {
                     MapLocation potentialLoc = rc.adjacentLocation(RobotPlayer.directions[i]);
@@ -96,5 +98,18 @@ strictfp class BuilderStrategy {
         }
 
         RobotPlayer.move2(rc, target, 2);
+
+
+        // for (int i = 0; i < 9; i++) {
+        //     if (rc.canMove(dir)) {
+        //         rc.move(dir);
+        //         break;
+        //     } else {
+        //         dir = dir.rotateLeft();
+        //         if (dir.equals(me.directionTo(target))) {
+        //             break;
+        //         }
+        //     }
+        // }
     }
 }

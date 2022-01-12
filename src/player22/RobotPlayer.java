@@ -1,4 +1,4 @@
-package player20;
+package player22;
 
 import battlecode.common.*;
 
@@ -80,6 +80,23 @@ public strictfp class RobotPlayer {
     static boolean rotateLeft = rng.nextBoolean();
     static MapLocation backupTarget;
     static int actionRadiusSquared;
+
+    static MapLocation findNearestEmptyTile(RobotController rc, MapLocation me) throws GameActionException {
+        MapLocation[] nearbyTiles = rc.getAllLocationsWithinRadiusSquared(me, 100);
+        int minDistance = 10000;
+        MapLocation nearestFreeTile = null;
+
+        for (MapLocation tile : nearbyTiles) {
+            if (rc.canSenseLocation(tile) && !rc.canSenseRobotAtLocation(tile) && rc.senseLead(tile) == 0 && rc.senseGold(tile) == 0) {
+                if (nearestFreeTile == null || me.distanceSquaredTo(tile) < minDistance) {
+                    nearestFreeTile = tile;
+                    minDistance = me.distanceSquaredTo(nearestFreeTile);
+                }
+            }
+        }
+        
+        return nearestFreeTile;
+    }
 
     static TripleTarget acquireLocalTargets(RobotController rc, MapLocation globalTarget, RobotInfo[] enemies,
             MapLocation me) throws GameActionException {
@@ -191,10 +208,10 @@ public strictfp class RobotPlayer {
         //     }
         // }
 
-        MapLocation[] enemiesInSharedArray = Comms.getEnemyLocations(rc);
-        for (MapLocation loc : enemiesInSharedArray) {
-            if (me.distanceSquaredTo(loc) < me.distanceSquaredTo(target)) {
-                target = loc;
+        EnemyLocation[] enemiesInSharedArray = Comms.getEnemyLocations(rc);
+        for (EnemyLocation loc : enemiesInSharedArray) {
+            if (me.distanceSquaredTo(loc.location) < me.distanceSquaredTo(target)) {
+                target = loc.location;
             }
         }
 
@@ -670,7 +687,7 @@ public strictfp class RobotPlayer {
             } catch (Exception e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
-                // rc.resign();
+                rc.resign();
             } finally {
                 Clock.yield();
             }

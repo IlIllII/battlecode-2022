@@ -1,4 +1,4 @@
-package player20;
+package player20test;
 
 import battlecode.common.*;
 
@@ -131,7 +131,7 @@ public strictfp class RobotPlayer {
      * @return
      * @throws GameActionException
      */
-    static MapLocation locateCombatTarget(RobotController rc, MapLocation me, MapLocation backupLocation) throws GameActionException {
+    static CombatTargetAndEnemyLocs locateCombatTarget(RobotController rc, MapLocation me, MapLocation backupLocation) throws GameActionException {
 
         boolean usingOffensiveTarget = false;
         MapLocation target = backupLocation;
@@ -191,14 +191,16 @@ public strictfp class RobotPlayer {
         //     }
         // }
 
-        MapLocation[] enemiesInSharedArray = Comms.getEnemyLocations(rc);
-        for (MapLocation loc : enemiesInSharedArray) {
-            if (me.distanceSquaredTo(loc) < me.distanceSquaredTo(target)) {
-                target = loc;
+        EnemyLocation[] enemiesInSharedArray = Comms.getEnemyLocations(rc);
+        for (EnemyLocation loc : enemiesInSharedArray) {
+            if (loc != null && loc.exists && me.distanceSquaredTo(loc.location) < me.distanceSquaredTo(target)) {
+                target = loc.location;
             }
         }
 
-        return target;
+
+
+        return new CombatTargetAndEnemyLocs(target, enemiesInSharedArray);
     }
 
     static void attackGlobalTargetIfAble(RobotController rc, MapLocation target, MapLocation me)
@@ -350,6 +352,50 @@ public strictfp class RobotPlayer {
                 if (dir.equals(oldDir)) {
                     break;
                 }
+            }
+        }
+    }
+
+    public static void lowRubbleMove(RobotController rc, MapLocation target) throws GameActionException {
+        MapLocation myLoc = rc.getLocation();
+        Direction dir = myLoc.directionTo(target);
+        int baseRubble = rc.senseRubble(myLoc);
+        if (rc.canMove(dir)) {
+            int[] rubbleNumbers = new int[3];
+
+            Direction leftDir = dir.rotateLeft();
+            Direction rightDir = dir.rotateRight();
+
+            rubbleNumbers[0] = rc.canSenseLocation(rc.adjacentLocation(leftDir)) && rc.canMove(leftDir)
+                    ? rc.senseRubble(rc.adjacentLocation(leftDir))
+                    : 100;
+            rubbleNumbers[1] = rc.canSenseLocation(rc.adjacentLocation(dir))
+                    ? rc.senseRubble(rc.adjacentLocation(dir))
+                    : 100;
+            rubbleNumbers[2] = rc.canSenseLocation(rc.adjacentLocation(rightDir)) && rc.canMove(rightDir)
+                    ? rc.senseRubble(rc.adjacentLocation(rightDir))
+                    : 100;
+
+            int minValue = rubbleNumbers[1];
+            int minIdx = 1;
+
+            for (int j = 0; j < 3; j += 2) {
+                if (rubbleNumbers[j] < minValue) {
+                    minValue = rubbleNumbers[j];
+                    minIdx = j;
+                }
+            }
+
+            if (minIdx == 0) {
+                dir = dir.rotateLeft();
+            } else if (minIdx == 2) {
+                dir = dir.rotateRight();
+            }
+
+            if (rc.senseRubble(rc.adjacentLocation(dir)) <= baseRubble) {
+                rc.move(dir);
+            } else {
+                stepOffRubble(rc, myLoc);
             }
         }
     }
@@ -670,10 +716,20 @@ public strictfp class RobotPlayer {
             } catch (Exception e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
-                // rc.resign();
             } finally {
                 Clock.yield();
             }
         }
+    }
+}
+
+
+class CombatTargetAndEnemyLocs {
+    public EnemyLocation[] locations;
+    public MapLocation target;
+
+    public CombatTargetAndEnemyLocs(MapLocation target, EnemyLocation[] locations) {
+        this.target = target;
+        this.locations = locations;
     }
 }

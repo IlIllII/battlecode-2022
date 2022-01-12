@@ -1,8 +1,9 @@
-package player20;
+package player20test;
 
 import battlecode.common.*;
 
-strictfp class SoldierStrategy {
+
+strictfp class SageStrategy {
 
     static RobotType myType = RobotType.SOLDIER;
     final static int ATTACK_RADIUS_SQUARED = myType.actionRadiusSquared;
@@ -13,15 +14,9 @@ strictfp class SoldierStrategy {
     static boolean healing = false;
     static MapLocation backupLocation = RobotPlayer.getRandomMapLocation();
     static MapLocation lastLocation = new MapLocation(0, 0);
-    static MapLocation lastLastLocation = new MapLocation(0, 0);
-    // static MapLocation repairLoc = null;
-    // static boolean foundRepairSpot = false;
+
     
-
-
-    static BFS bfs;
-
-    static void run(RobotController rc) throws GameActionException { 
+    static void run(RobotController rc) throws GameActionException {
         MapLocation me = rc.getLocation();
 
         if (me.distanceSquaredTo(backupLocation) <= 4) {
@@ -39,10 +34,13 @@ strictfp class SoldierStrategy {
         }
         
 
-        MapLocation target = RobotPlayer.locateCombatTarget(rc, me, backupLocation);
+        CombatTargetAndEnemyLocs combatTargetAndEnemyLocs = RobotPlayer.locateCombatTarget(rc, me, backupLocation);
+        MapLocation target = combatTargetAndEnemyLocs.target;
+        EnemyLocation[] enemyLocations = combatTargetAndEnemyLocs.locations;
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, RobotPlayer.opponent);
 
         RobotPlayer.attackGlobalTargetIfAble(rc, target, me);
+
 
 
         TripleTarget localTargets = RobotPlayer.acquireLocalTargets(rc, target, enemies, me);
@@ -51,13 +49,17 @@ strictfp class SoldierStrategy {
         MapLocation secondaryTarget = localTargets.secondary;
         MapLocation tertiaryTarget = localTargets.tertiary;
 
+        // if (rc.getRoundNum() < 45) {
+        //     tertiaryTarget = rc.adjacentLocation(RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)]);
+        // }
+
 
         if (rc.senseNearbyRobots(2, rc.getTeam()).length > 4) {
             RobotPlayer.move2(rc, primaryTarget, 2);
         }
         if (rc.canAttack(primaryTarget)) {
             rc.attack(primaryTarget);
-            Comms.setEnemyLocation(rc, primaryTarget);
+            Comms.setEnemyLocation(rc, primaryTarget, enemyLocations);
         }
         if (rc.canAttack(secondaryTarget)) {
             rc.attack(secondaryTarget);
@@ -66,15 +68,53 @@ strictfp class SoldierStrategy {
             rc.attack(tertiaryTarget);
         }
 
+        // if (rc.senseNearbyRobots(-1, rc.getTeam()).length < 5 /* && rc.canSenseLocation(primaryTarget) && rc.canSenseRobotAtLocation(primaryTarget) && rc.senseRobotAtLocation(primaryTarget).type.equals(RobotType.SOLDIER) */ ) {
+        //     RobotPlayer.move2(rc, rc.adjacentLocation(me.directionTo(primaryTarget).opposite()).add(me.directionTo(primaryTarget)), 3);
+        // }
 
-        if (rc.isActionReady() && rc.isMovementReady()) {  
+        if (rc.isMovementReady()) {
+
+            if (healing || rc.getHealth() < (rc.getType().health / 4) || !rc.isActionReady()) {
+
+                ArchonLocation[] archLocs = Comms.getArchonLocations(rc);
+
+                MapLocation repairLoc = null;
+
+                boolean foundRepairSpot = false;
+
+                while (!foundRepairSpot) {
+                    for (ArchonLocation archLoc : archLocs) {
+                        // if (repairLoc == null || (archLoc.exists && me.distanceSquaredTo(repairLoc) > me.distanceSquaredTo(archLoc.location))) {
+                        //     repairLoc = archLoc.location;
+                        // }
+                        if (archLoc.exists && RobotPlayer.rng.nextInt(4) == 0) {
+                            repairLoc = archLoc.location;
+                            foundRepairSpot = true;
+                        }
+                    }
+                }
+
+                tertiaryTarget = repairLoc;
+                healing = true;
+            }
+
+            if (rc.getHealth() > rc.getType().health && rc.getActionCooldownTurns() < 5) {
+                healing = false;
+            }
+
+            // Experimental move.
+            int startTime = Clock.getBytecodeNum();
+
+
+
+            
             try {
-                Direction dir = AdvancedMove.getBestDir(rc, tertiaryTarget);
+                Direction dir = AdvancedMoveCopy.getBestDir(rc, tertiaryTarget);
 
                 if (dir != null && !dir.equals(Direction.CENTER) && rc.canMove(dir)) {
                     if (!rc.adjacentLocation(dir).equals(lastLocation)) {
-                        lastLocation = rc.getLocation();
                         rc.move(dir);
+                        lastLocation = rc.getLocation();
                     } else {
                         if (rc.canMove(rc.getLocation().directionTo(tertiaryTarget))) {
                             RobotPlayer.move(rc, tertiaryTarget);
@@ -85,12 +125,21 @@ strictfp class SoldierStrategy {
                 //TODO: handle exception
                 System.out.println("Move returned null");;
             }
+            // RobotPlayer.move2(rc, tertiaryTarget, recursionLimit);
 
-            
+
+            int end = Clock.getBytecodeNum();
+
+            if ((end - startTime) > longestTime) {
+                longestTime = (end - startTime);
+            }
+            rc.setIndicatorString("" + longestTime);
+            rc.setIndicatorLine(me, tertiaryTarget, 1000, 0, 1000);;
+
             // Fall back to simple move incase other move doesn't work.
             RobotPlayer.move(rc, tertiaryTarget);
-            
-            
+
+
             // RobotPlayer.move(rc, tertiaryTarget);
 
             if (rc.canAttack(tertiaryTarget)) {
@@ -106,8 +155,6 @@ strictfp class SoldierStrategy {
             retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
             retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
             RobotPlayer.move(rc, retreatMove);
-        }
-        
-        rc.setIndicatorLine(me, tertiaryTarget, 1000, 0, 1000);
+        }   
     }
 }

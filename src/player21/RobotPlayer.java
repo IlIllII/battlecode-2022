@@ -1,4 +1,4 @@
-package player20;
+package player21;
 
 import battlecode.common.*;
 
@@ -191,10 +191,10 @@ public strictfp class RobotPlayer {
         //     }
         // }
 
-        MapLocation[] enemiesInSharedArray = Comms.getEnemyLocations(rc);
-        for (MapLocation loc : enemiesInSharedArray) {
-            if (me.distanceSquaredTo(loc) < me.distanceSquaredTo(target)) {
-                target = loc;
+        EnemyLocation[] enemiesInSharedArray = Comms.getEnemyLocations(rc);
+        for (EnemyLocation loc : enemiesInSharedArray) {
+            if (me.distanceSquaredTo(loc.location) < me.distanceSquaredTo(target)) {
+                target = loc.location;
             }
         }
 
@@ -670,7 +670,7 @@ public strictfp class RobotPlayer {
             } catch (Exception e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
-                // rc.resign();
+                rc.resign();
             } finally {
                 Clock.yield();
             }

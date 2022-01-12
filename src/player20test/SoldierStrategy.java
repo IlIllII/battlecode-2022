@@ -1,4 +1,4 @@
-package player20;
+package player20test;
 
 import battlecode.common.*;
 
@@ -28,18 +28,17 @@ strictfp class SoldierStrategy {
             backupLocation = RobotPlayer.getRandomMapLocation();
         }
 
-
-        // if (aliveTime == 0) {
-        //     bfs = new AdvancedMove(rc);
-        // }
-
         aliveTime++;
         if (aliveTime == 2) {
             repairLocation = me;
         }
         
 
-        MapLocation target = RobotPlayer.locateCombatTarget(rc, me, backupLocation);
+        CombatTargetAndEnemyLocs combatTargetAndLocs = RobotPlayer.locateCombatTarget(rc, me, backupLocation);
+        MapLocation target = combatTargetAndLocs.target;
+        EnemyLocation[] enemyLocations = combatTargetAndLocs.locations;
+
+
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, RobotPlayer.opponent);
 
         RobotPlayer.attackGlobalTargetIfAble(rc, target, me);
@@ -57,7 +56,7 @@ strictfp class SoldierStrategy {
         }
         if (rc.canAttack(primaryTarget)) {
             rc.attack(primaryTarget);
-            Comms.setEnemyLocation(rc, primaryTarget);
+            Comms.setEnemyLocation(rc, primaryTarget, enemyLocations);
         }
         if (rc.canAttack(secondaryTarget)) {
             rc.attack(secondaryTarget);
@@ -69,15 +68,17 @@ strictfp class SoldierStrategy {
 
         if (rc.isActionReady() && rc.isMovementReady()) {  
             try {
-                Direction dir = AdvancedMove.getBestDir(rc, tertiaryTarget);
-
-                if (dir != null && !dir.equals(Direction.CENTER) && rc.canMove(dir)) {
-                    if (!rc.adjacentLocation(dir).equals(lastLocation)) {
-                        lastLocation = rc.getLocation();
-                        rc.move(dir);
-                    } else {
-                        if (rc.canMove(rc.getLocation().directionTo(tertiaryTarget))) {
-                            RobotPlayer.move(rc, tertiaryTarget);
+                if (Clock.getBytecodesLeft() > 6500) {
+                    Direction dir = AdvancedMoveCopy.getBestDir(rc, tertiaryTarget);
+    
+                    if (dir != null && !dir.equals(Direction.CENTER) && rc.canMove(dir)) {
+                        if (!rc.adjacentLocation(dir).equals(lastLocation)) {
+                            lastLocation = rc.getLocation();
+                            rc.move(dir);
+                        } else {
+                            if (rc.canMove(rc.getLocation().directionTo(tertiaryTarget))) {
+                                RobotPlayer.move(rc, tertiaryTarget);
+                            }
                         }
                     }
                 }
@@ -88,7 +89,7 @@ strictfp class SoldierStrategy {
 
             
             // Fall back to simple move incase other move doesn't work.
-            RobotPlayer.move(rc, tertiaryTarget);
+            RobotPlayer.move2(rc, tertiaryTarget, 3);
             
             
             // RobotPlayer.move(rc, tertiaryTarget);
@@ -96,16 +97,16 @@ strictfp class SoldierStrategy {
             if (rc.canAttack(tertiaryTarget)) {
                 rc.attack(tertiaryTarget);
             }
-        } /* else {
-            RobotPlayer.stepOffRubble(rc, me);
-        } */
+        } 
+
         if (!rc.isActionReady() && rc.isMovementReady()) {
             MapLocation retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
             retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
             retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
             retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
             retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
-            RobotPlayer.move(rc, retreatMove);
+
+            RobotPlayer.lowRubbleMove(rc, retreatMove);
         }
         
         rc.setIndicatorLine(me, tertiaryTarget, 1000, 0, 1000);
