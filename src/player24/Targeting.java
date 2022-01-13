@@ -91,16 +91,16 @@ public class Targeting {
                 
                 boolean clearedGlobalEnemyFromArray = false;
     
-                // if (rc.canSenseLocation(globalEnemy.location)) {
-                //     if (!rc.canSenseRobotAtLocation(globalEnemy.location) || rc.senseRobotAtLocation(globalEnemy.location).team.equals(rc.getTeam())) {
-                //         Comms.clearEnemyLocation(rc, globalEnemy.index);
-                //         clearedGlobalEnemyFromArray = true;
-                //     }
-                // }
+                if (rc.canSenseLocation(globalEnemy.location)) {
+                    if (!rc.canSenseRobotAtLocation(globalEnemy.location) || rc.senseRobotAtLocation(globalEnemy.location).team.equals(rc.getTeam())) {
+                        Comms.clearEnemyLocation(rc, globalEnemy.index);
+                        clearedGlobalEnemyFromArray = true;
+                    }
+                }
 
 
     
-                if (me.distanceSquaredTo(globalEnemy.location) < closestDistanceToGlobalEnemy) {
+                if (!clearedGlobalEnemyFromArray && me.distanceSquaredTo(globalEnemy.location) < closestDistanceToGlobalEnemy) {
                     target = globalEnemy.location;
                     closestDistanceToGlobalEnemy = me.distanceSquaredTo(target);
                 }

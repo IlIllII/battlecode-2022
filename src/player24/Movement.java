@@ -4,10 +4,19 @@ import battlecode.common.*;
 
 public class Movement {
     static boolean move(RobotController rc, MapLocation target, MapLocation lastLastLocation, int recursionLevel, boolean dangerClose) throws GameActionException {
-        
-        if (Clock.getBytecodesLeft() > 6450) {
+        int bytecodeLeft = Clock.getBytecodesLeft();
+        if (bytecodeLeft > 2600) {
+            Direction dir = null;
+            dir = AdvancedMove3.getBestDir(rc, target);
+
+            if (bytecodeLeft > 4700) {
+                dir = AdvancedMove2.getBestDir(rc, target);
+            } else if (bytecodeLeft > 3700) {
+                dir = AdvancedMove3.getBestDir(rc, target);
+            } else if (bytecodeLeft > 2600) {
+                dir = AdvancedMove4.getBestDir(rc, target);
+            }
             // System.out.println("Moving w/ advanced");
-            Direction dir = AdvancedMove.getBestDir(rc, target);
             if (dir != null && !rc.getLocation().equals(lastLastLocation)) {
                 if (rc.canMove(dir)) {
                     rc.move(dir);

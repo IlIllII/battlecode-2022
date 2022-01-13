@@ -65,7 +65,7 @@ strictfp class SoldierStrategy {
         int end = Clock.getBytecodeNum();
 
         maxTargetingCost = (end - start) > maxTargetingCost ? (end - start) : maxTargetingCost;
-        rc.setIndicatorString("Targeting: " + maxTargetingCost);
+        // rc.setIndicatorString("Targeting: " + maxTargetingCost);
         // MapLocation target = backupLocation;
 
         
@@ -178,7 +178,7 @@ strictfp class SoldierStrategy {
                         RobotPlayer.move2(rc, nearestFreeTile, 2);
                         if (rc.getLocation().equals(nearestFreeTile)) {
                             System.out.println("Disintegrating");
-                            if (selfDestructTimer > 2) {
+                            if (selfDestructTimer > 5) {
                                 rc.disintegrate();
                             }
                         }

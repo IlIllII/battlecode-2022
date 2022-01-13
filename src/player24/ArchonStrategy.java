@@ -328,5 +328,15 @@ strictfp class ArchonStrategy {
 
         rc.setIndicatorLine(me, target, 100, 100, 100);
         rc.setIndicatorString("Repairs: " + repairCount);
+
+        double x;
+
+        int startTime = Clock.getBytecodeNum();
+        
+        x = 10.0 / 4.0;
+
+        int endTime = Clock.getBytecodeNum();
+        rc.setIndicatorString("Time: " + (endTime - startTime));
+
     }
 }
