@@ -80,29 +80,29 @@ public class Targeting {
         int lowestHPBenignEnemy = 100000;
         double closestDistanceToGlobalEnemy = 100000;
 
-        
-        for (EnemyLocation globalEnemy : globalEnemyLocations) {
-            
-            if (globalEnemy == null || !globalEnemy.exists) {
-                break;
-            }
-
-            // System.out.println(globalEnemy.location.toString());
-            
-            boolean clearedGlobalEnemyFromArray = false;
-
-            if (rc.canSenseLocation(globalEnemy.location)) {
-                if (!rc.canSenseRobotAtLocation(globalEnemy.location) || rc.senseRobotAtLocation(globalEnemy.location).team.equals(rc.getTeam())) {
-                    Comms.clearEnemyLocation(rc, globalEnemy.index);
-                    clearedGlobalEnemyFromArray = true;
+        if (nearbyEnemies.length == 0) {
+            for (EnemyLocation globalEnemy : globalEnemyLocations) {
+                
+                if (globalEnemy == null || !globalEnemy.exists) {
+                    break;
                 }
-            }
+    
+                // System.out.println(globalEnemy.location.toString());
+                
+                boolean clearedGlobalEnemyFromArray = false;
+    
+                // if (rc.canSenseLocation(globalEnemy.location)) {
+                //     if (!rc.canSenseRobotAtLocation(globalEnemy.location) || rc.senseRobotAtLocation(globalEnemy.location).team.equals(rc.getTeam())) {
+                //         Comms.clearEnemyLocation(rc, globalEnemy.index);
+                //         clearedGlobalEnemyFromArray = true;
+                //     }
+                // }
 
-            if (!foundGlobalTarget && !clearedGlobalEnemyFromArray) {
-                if (Math.sqrt(me.distanceSquaredTo(globalEnemy.location)) < closestDistanceToGlobalEnemy) {
+
+    
+                if (me.distanceSquaredTo(globalEnemy.location) < closestDistanceToGlobalEnemy) {
                     target = globalEnemy.location;
-                    closestDistanceToGlobalEnemy = Math.sqrt(me.distanceSquaredTo(target));
-                    foundGlobalTarget = true;
+                    closestDistanceToGlobalEnemy = me.distanceSquaredTo(target);
                 }
             }
         }
@@ -136,17 +136,16 @@ public class Targeting {
         if (target != null && foundLocalTarget && rc.senseRobotAtLocation(target).type == RobotType.ARCHON) {
             rc.setIndicatorString("reached setEnemyLoc");
             Comms.setOffensiveLocation(rc, target);
+        } else if (target != null && foundLocalTarget) {
+            Comms.setEnemyLocation(rc, target, globalEnemyLocations);
         }
+
 
         if (target == null) {
             target = backupTarget;
             if (me.distanceSquaredTo(backupTarget) <= 4) {
                 target = null;
             }
-        }
-
-        if (target != null) {
-            Comms.setEnemyLocation(rc, target, globalEnemyLocations);
         }
 
         return target;

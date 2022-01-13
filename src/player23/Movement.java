@@ -6,6 +6,7 @@ public class Movement {
     static boolean move(RobotController rc, MapLocation target, MapLocation lastLastLocation, int recursionLevel, boolean dangerClose) throws GameActionException {
         
         if (Clock.getBytecodesLeft() > 6450) {
+            // System.out.println("Moving w/ advanced");
             Direction dir = AdvancedMove.getBestDir(rc, target);
             if (dir != null && !rc.getLocation().equals(lastLastLocation)) {
                 if (rc.canMove(dir)) {
@@ -21,6 +22,7 @@ public class Movement {
             }
         } else {
             RobotPlayer.move2(rc, target, recursionLevel);
+            // System.out.println("Moving w/ move2");
         }
         
         if (rc.isMovementReady()) {

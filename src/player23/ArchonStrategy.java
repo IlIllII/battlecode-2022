@@ -165,6 +165,8 @@ strictfp class ArchonStrategy {
         }
 
         MapLocation target = new MapLocation(1000, 1000);
+        EnemyLocation[] globalEnemyLocations = Comms.getEnemyLocations(rc);
+
 
 
         int rcId = rc.getID();
@@ -185,7 +187,7 @@ strictfp class ArchonStrategy {
             }
         }
 
-        if (round % 20 == 0) {
+        if (round % 10 == 0) {
             Comms.clearArchonLocations(rc);
             Comms.clearEnemyLocations(rc);
         }
@@ -197,6 +199,7 @@ strictfp class ArchonStrategy {
             // setDefendLocation(rc, enemyLocation, id);
 
             Comms.setArchonLocation(rc, me, true, id);
+            Comms.setEnemyLocation(rc, enemyLocs[0].location, globalEnemyLocations);
             buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
 
         } else {
@@ -301,6 +304,15 @@ strictfp class ArchonStrategy {
 
         Team tm = rc.getTeam();
         int leadAmt = rc.getTeamLeadAmount(tm);
+
+
+
+
+        for (EnemyLocation loc : globalEnemyLocations) {
+            if (loc != null && loc.exists) {
+                rc.setIndicatorDot(loc.location, 0, 1000, 0);
+            }
+        }
 
         // if (rc.readSharedArray(2) == 0) {
             

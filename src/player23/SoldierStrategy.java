@@ -22,6 +22,8 @@ strictfp class SoldierStrategy {
     // static MapLocation repairLoc = null;
     // static boolean foundRepairSpot = false;
     static int maxTargetingCost = 0;
+    static int lastTurnsHealth = 0;
+    static int selfDestructTimer = 0;
     
 
     static void run(RobotController rc) throws GameActionException {
@@ -37,14 +39,25 @@ strictfp class SoldierStrategy {
             lastLastLocation = lastLocation;
             lastLocation = me;
         }
-        rc.setIndicatorString(lastLastLocation.toString());
 
-        if (rc.getHealth() > 25 || enemies.length > 0) {
-            selfDestructing = false;
+        int currentHealth = rc.getHealth();
+
+        if (selfDestructing) {
+            selfDestructTimer++;
         }
 
-        if (rc.getHealth() > 45) {
+        if (enemies.length > 0 || lastTurnsHealth != currentHealth) {
+            selfDestructing = false;
+            selfDestructTimer = 0;
+        }
+
+        lastTurnsHealth = currentHealth;
+
+        
+
+        if (currentHealth > 46) {
             retreating = false;
+            selfDestructTimer = 0;
         }
 
         int start = Clock.getBytecodeNum();
@@ -61,23 +74,34 @@ strictfp class SoldierStrategy {
             backupRetreatTarget = me;
         }
 
-        if (enemies.length > 0) {
-            dangerClose = true;
+        for (RobotInfo enemy : enemies) {
+            if (enemy.type == RobotType.SOLDIER || enemy.type == RobotType.WATCHTOWER || enemy.type == RobotType.SAGE) {
+                dangerClose = true;
+                break;
+            }
         }
         
         
         // * Targeting cascade
         if (target == null) {
+            System.out.println("targeting return null");
             backupLocation = RobotPlayer.getRandomMapLocation();
             target = backupLocation;
         }
-        if (target.equals(backupLocation) || me.distanceSquaredTo(target) > rc.getType().visionRadiusSquared) {
+        if (target.equals(backupLocation)) {
             if (offensiveTarget != null) {
                 target = offensiveTarget;
             }
             if (defensiveTarget != null) {
                 target = defensiveTarget;
             }
+        }
+        if (defensiveTarget != null && me.distanceSquaredTo(target) > 49 && me.distanceSquaredTo(defensiveTarget) > 36) {
+            target = defensiveTarget;
+        }
+
+        if (defensiveTarget != null) {
+            rc.setIndicatorDot(defensiveTarget, 0, 0, 1000);
         }
 
         // if (rc.getRoundNum() < 60) {
@@ -86,7 +110,7 @@ strictfp class SoldierStrategy {
 
 
         // * Checking health in order to retreat
-        if (rc.getHealth() <= 7) {
+        if (rc.getHealth() <= 11) {
             retreating = true;
         }
 
@@ -105,7 +129,7 @@ strictfp class SoldierStrategy {
             }
         }
 
-        if (!rc.isActionReady()) {
+        if (!rc.isActionReady() && dangerClose) {
             int x = (target.x - me.x);
             int y = (target.y - me.y);
             target = new MapLocation(me.x - x, me.y - y);
@@ -131,9 +155,18 @@ strictfp class SoldierStrategy {
                     }
 
                     if (retreatTarget != null) {
-                        Movement.move(rc, retreatTarget, lastLastLocation, 2, dangerClose);
-                        if (me.distanceSquaredTo(retreatTarget) <= 9 && enemies.length == 0) {
-                            selfDestructing = true;
+                        if (defensiveTarget != null && me.distanceSquaredTo(target) > 64) {
+                            if (!fallingBack) {
+                                Movement.move(rc, target, lastLastLastLocation, 2, dangerClose);
+                                RobotPlayer.move(rc, target);
+                            } else {
+                                Movement.fallingBackMove(rc, target);
+                            }
+                        } else {
+                            Movement.move(rc, retreatTarget, lastLastLocation, 2, dangerClose);
+                            if (me.distanceSquaredTo(retreatTarget) <= 25 && enemies.length == 0) {
+                                selfDestructing = true;
+                            }
                         }
 
                     } else {
@@ -141,11 +174,13 @@ strictfp class SoldierStrategy {
                     }
                 } else {
                     MapLocation nearestFreeTile = RobotPlayer.findNearestEmptyTile(rc, me);
-                    if (nearestFreeTile != null) {
+                    if (nearestFreeTile != null && !dangerClose) {
                         RobotPlayer.move2(rc, nearestFreeTile, 2);
                         if (rc.getLocation().equals(nearestFreeTile)) {
                             System.out.println("Disintegrating");
-                            rc.disintegrate();
+                            if (selfDestructTimer > 2) {
+                                rc.disintegrate();
+                            }
                         }
 
                     } else {

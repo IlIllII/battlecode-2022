@@ -1,5 +1,6 @@
 package player23;
 
+import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -495,6 +496,7 @@ public class AdvancedMove /* extends BFS */ {
     static Direction d151;
     static int p151;
 
+
     /**
      * Bytecode cost: 6300.
      * 
@@ -504,6 +506,10 @@ public class AdvancedMove /* extends BFS */ {
      * @return
      */
     static Direction getBestDir(RobotController rc, MapLocation target){
+
+        // int start = Clock.getBytecodeNum();
+        // 870 bytecode
+
         l84 = rc.getLocation();
         v84 = 0;
         l85 = l84.add(Direction.NORTH);
@@ -794,6 +800,10 @@ public class AdvancedMove /* extends BFS */ {
         l115 = l127.add(Direction.NORTHWEST);
         v115 = 1000000;
         d115 = null;
+
+        // int end = Clock.getBytecodeNum();
+
+        // rc.setIndicatorString("Timing: " + (end - start));
 
         try {
             if (rc.canSenseLocation(l71)) {
@@ -3010,7 +3020,7 @@ public class AdvancedMove /* extends BFS */ {
             double bestEstimation = 0;
             double initialDist = Math.sqrt(l84.distanceSquaredTo(target));
 
-
+            /*
             rc.setIndicatorDot(l30, 0, 0, 0);
             rc.setIndicatorDot(l31, 0, 0, 0);
             rc.setIndicatorDot(l32, 0, 0, 0);
@@ -3043,6 +3053,7 @@ public class AdvancedMove /* extends BFS */ {
             rc.setIndicatorDot(l136, 0, 0, 0);
             rc.setIndicatorDot(l137, 0, 0, 0);
             rc.setIndicatorDot(l138, 0, 0, 0);
+            */
 
 
             double dist30 = (initialDist - Math.sqrt(l30.distanceSquaredTo(target))) / v30;
