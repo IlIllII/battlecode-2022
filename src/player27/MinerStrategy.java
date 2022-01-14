@@ -160,16 +160,16 @@ strictfp class MinerStrategy {
         RobotInfo[] allies = rc.senseNearbyRobots(-1, rc.getTeam());
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
-        if (allies.length > 0) {
-            for (RobotInfo ally : allies) {
-                if (ally.type == RobotType.MINER) {
-                    if (target.distanceSquaredTo(ally.location) <= 4) {
-                        target = globalTarget;
-                        break;
-                    }
-                }
-            }
-        }
+        // if (allies.length > 0) {
+        //     for (RobotInfo ally : allies) {
+        //         if (ally.type == RobotType.MINER) {
+        //             if (target.distanceSquaredTo(ally.location) <= 4) {
+        //                 target = globalTarget;
+        //                 break;
+        //             }
+        //         }
+        //     }
+        // }
 
 
         // * Should we flee/retreat?
