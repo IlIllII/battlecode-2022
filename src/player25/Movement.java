@@ -7,7 +7,6 @@ public class Movement {
         int bytecodeLeft = Clock.getBytecodesLeft();
         if (bytecodeLeft > 2600) {
             Direction dir = null;
-            dir = AdvancedMove3.getBestDir(rc, target);
 
             if (bytecodeLeft > 4700) {
                 dir = AdvancedMove2.getBestDir(rc, target);
@@ -16,8 +15,8 @@ public class Movement {
             } else if (bytecodeLeft > 2600) {
                 dir = AdvancedMove4.getBestDir(rc, target);
             }
-            // System.out.println("Moving w/ advanced");
-            if (dir != null && !rc.getLocation().equals(lastLastLocation)) {
+
+            if (dir != null && !dir.equals(Direction.CENTER) && !rc.getLocation().equals(lastLastLocation)) {
                 if (rc.canMove(dir)) {
                     rc.move(dir);
                     // if (dangerClose && rc.senseRubble(rc.getLocation()) >= rc.senseRubble(rc.adjacentLocation(dir))) {
@@ -82,5 +81,35 @@ public class Movement {
                 RobotPlayer.stepOffRubble(rc, myLoc);
             }
         }
+    }
+
+    static boolean moveButDontStepOnRubble(RobotController rc, MapLocation target, int recursionLevel, boolean dangerClose) throws GameActionException {
+        int bytecodeLeft = Clock.getBytecodesLeft();
+        if (bytecodeLeft > 2600) {
+            Direction dir = null;
+
+            if (bytecodeLeft > 4700) {
+                dir = AdvancedMove2.getBestDir(rc, target);
+            } else if (bytecodeLeft > 3700) {
+                dir = AdvancedMove3.getBestDir(rc, target);
+            } else if (bytecodeLeft > 2600) {
+                dir = AdvancedMove4.getBestDir(rc, target);
+            }
+
+            if (dir != null && !dir.equals(Direction.CENTER)) {
+                if (rc.canMove(dir)) {
+                    if (rc.senseRubble(rc.getLocation()) >= rc.senseRubble(rc.adjacentLocation(dir))) {
+                        rc.move(dir);
+                    }
+                }
+            }
+        } else {
+            RobotPlayer.move(rc, target);
+        }
+        
+        if (rc.isMovementReady()) {
+            return false;
+        }
+        return true;
     }
 }

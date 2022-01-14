@@ -27,67 +27,64 @@ strictfp class SoldierStrategy {
     
 
     static void run(RobotController rc) throws GameActionException {
+
+        // * Setting main variables
+        boolean fallingBack = false;
+        boolean enemySoldierClose = false;
+        boolean attacked = false;
+        int currentHealth = rc.getHealth();
         MapLocation me = rc.getLocation();
-        boolean dangerClose = false;
         RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, RobotPlayer.opponent);
         MapLocation offensiveTarget = Targeting.getOffensiveTarget(rc);
         MapLocation defensiveTarget = Targeting.getDefensiveTarget(rc);
-        boolean fallingBack = false;
+        MapLocation target = Targeting.getTargetFromGlobalAndLocalEnemyLocations(rc, enemies, backupLocation);
 
+        // * These values vary based on current conditions
+        aliveTime++;
+        if (aliveTime == 1) {
+            backupRetreatTarget = me;
+        }
         if (!lastLocation.equals(me)) {
             lastLastLastLocation = lastLastLocation;
             lastLastLocation = lastLocation;
             lastLocation = me;
         }
-
-        int currentHealth = rc.getHealth();
-
         if (selfDestructing) {
             selfDestructTimer++;
         }
-
         if (enemies.length > 0 || lastTurnsHealth != currentHealth) {
             selfDestructing = false;
             selfDestructTimer = 0;
         }
-
-        lastTurnsHealth = currentHealth;
-
-        
-
-        if (currentHealth > 46) {
+        if (currentHealth <= 11) {
+            retreating = true;
+        }
+        if (currentHealth > 40) { // leave wiggle room heal as we move away
             retreating = false;
+            selfDestructing = false;
             selfDestructTimer = 0;
         }
-
-        int start = Clock.getBytecodeNum();
-        MapLocation target = Targeting.getTargetFromGlobalAndLocalEnemyLocations(rc, enemies, backupLocation);
-        int end = Clock.getBytecodeNum();
-
-        maxTargetingCost = (end - start) > maxTargetingCost ? (end - start) : maxTargetingCost;
-        // rc.setIndicatorString("Targeting: " + maxTargetingCost);
-        // MapLocation target = backupLocation;
-
+        lastTurnsHealth = currentHealth;
         
-        aliveTime++;
-        if (aliveTime == 1) {
-            backupRetreatTarget = me;
-        }
 
+        // * Are there dangerous soldiers nearby?
+        // We care because we want to retreat after attacking them.
+        // TODO: This can be more efficient - we iterate over enemies elsewhere.
         for (RobotInfo enemy : enemies) {
-            if (enemy.type == RobotType.SOLDIER || enemy.type == RobotType.WATCHTOWER || enemy.type == RobotType.SAGE) {
-                dangerClose = true;
+            if (enemy.type == RobotType.SOLDIER) {
+                enemySoldierClose = true;
                 break;
             }
         }
         
         
         // * Targeting cascade
+        // Fall back to backup target as default. Might not be needed d/t new targeting scheme.
         if (target == null) {
-            System.out.println("targeting return null");
             backupLocation = RobotPlayer.getRandomMapLocation();
             target = backupLocation;
         }
+        // If offensive or defensive targets exist, we will prefer those.
         if (target.equals(backupLocation)) {
             if (offensiveTarget != null) {
                 target = offensiveTarget;
@@ -96,40 +93,36 @@ strictfp class SoldierStrategy {
                 target = defensiveTarget;
             }
         }
+        // We want to prefer defense when not engaged but still pursue enemies attacking our archon.
         if (defensiveTarget != null && me.distanceSquaredTo(target) > 49 && me.distanceSquaredTo(defensiveTarget) > 36) {
             target = defensiveTarget;
         }
 
-        if (defensiveTarget != null) {
-            rc.setIndicatorDot(defensiveTarget, 0, 0, 1000);
-        }
 
+        // This is an optional group up before rushing
         // if (rc.getRoundNum() < 60) {
         //     target = rc.adjacentLocation(RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)]);
         // }
 
 
-        // * Checking health in order to retreat
-        if (rc.getHealth() <= 11) {
-            retreating = true;
-        }
-
-
-        // * Advance when surrounded by allies
+        // Advance when surrounded by allies.
+        // TODO: This is worth investigating - may not be the best strat.
         RobotInfo[] closeByTeammates = rc.senseNearbyRobots(2, rc.getTeam());
         if (closeByTeammates.length > 4 && !retreating) {
             RobotPlayer.move2(rc, target, 2);
         }
 
 
-        // * If attacking is possible, attack and then set target to retreating.
+        // Attack if able before moving.
         if (rc.isActionReady()) {
             if (rc.canAttack(target)) {
                 rc.attack(target);
+                attacked = true;
             }
         }
 
-        if (!rc.isActionReady() && dangerClose) {
+        // If we are engaged with enemy soldiers, we want to fall back
+        if (!rc.isActionReady() && enemySoldierClose) {
             int x = (target.x - me.x);
             int y = (target.y - me.y);
             target = new MapLocation(me.x - x, me.y - y);
@@ -139,11 +132,19 @@ strictfp class SoldierStrategy {
 
         // * Dispatch differential movement.
         if (rc.isMovementReady()) {
-            if (!retreating) { // Attacking
+            if (!retreating) { // We are advancing.
                 if (!fallingBack) {
-                    Movement.move(rc, target, lastLastLastLocation, 2, dangerClose);
-                    RobotPlayer.move(rc, target);
+                    if (attacked) {
+                        // We do not want to move onto rubble if we are in combat, but
+                        // we also want to move if there aren't enemies in attack range.
+                        Movement.moveButDontStepOnRubble(rc, target, 2, enemySoldierClose);
+                    } else {
+                        // If we haven't attacked yet it means we are advancing so we move like normal.
+                        Movement.move(rc, target, lastLastLastLocation, 2, enemySoldierClose);
+                        RobotPlayer.move(rc, target);
+                    }
                 } else {
+                    // Special move where we do not fall back onto rubble.
                     Movement.fallingBackMove(rc, target);
                 }
             } else { // Retreating
@@ -157,13 +158,13 @@ strictfp class SoldierStrategy {
                     if (retreatTarget != null) {
                         if (defensiveTarget != null && me.distanceSquaredTo(target) > 64) {
                             if (!fallingBack) {
-                                Movement.move(rc, target, lastLastLastLocation, 2, dangerClose);
+                                Movement.move(rc, target, lastLastLastLocation, 2, enemySoldierClose);
                                 RobotPlayer.move(rc, target);
                             } else {
                                 Movement.fallingBackMove(rc, target);
                             }
                         } else {
-                            Movement.move(rc, retreatTarget, lastLastLocation, 2, dangerClose);
+                            Movement.move(rc, retreatTarget, lastLastLocation, 2, enemySoldierClose);
                             if (me.distanceSquaredTo(retreatTarget) <= 25 && enemies.length == 0) {
                                 selfDestructing = true;
                             }
@@ -174,12 +175,17 @@ strictfp class SoldierStrategy {
                     }
                 } else {
                     MapLocation nearestFreeTile = RobotPlayer.findNearestEmptyTile(rc, me);
-                    if (nearestFreeTile != null && !dangerClose) {
+                    if (nearestFreeTile != null && !enemySoldierClose) {
                         RobotPlayer.move2(rc, nearestFreeTile, 2);
                         if (rc.getLocation().equals(nearestFreeTile)) {
-                            System.out.println("Disintegrating");
                             if (selfDestructTimer > 5) {
-                                rc.disintegrate();
+                                if (currentHealth < 20) {
+                                    System.out.println("Disintegrating");
+                                    rc.disintegrate();
+                                } else {
+                                    selfDestructing = false;
+                                    retreating = false;
+                                }
                             }
                         }
 
