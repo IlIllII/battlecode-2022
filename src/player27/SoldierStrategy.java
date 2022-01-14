@@ -35,6 +35,7 @@ strictfp class SoldierStrategy {
         int currentHealth = rc.getHealth();
         MapLocation me = rc.getLocation();
         RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, RobotPlayer.opponent);
+        RobotInfo[] allies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam());
         MapLocation offensiveTarget = Targeting.getOffensiveTarget(rc);
         MapLocation defensiveTarget = Targeting.getDefensiveTarget(rc);
         MapLocation target = Targeting.getTargetFromGlobalAndLocalEnemyLocations(rc, enemies, backupLocation);
@@ -56,7 +57,7 @@ strictfp class SoldierStrategy {
             selfDestructing = false;
             selfDestructTimer = 0;
         }
-        if (currentHealth <= 11) { // TODO Should this be higher even?
+        if (currentHealth <= 17) { // TODO Should this be higher even?
             retreating = true;
         }
         if (currentHealth > 40) { // leave wiggle room heal as we move away
@@ -164,7 +165,7 @@ strictfp class SoldierStrategy {
                                 Movement.fallingBackMove(rc, target);
                             }
                         } else {
-                            Movement.move(rc, retreatTarget, lastLastLocation, 2, enemySoldierClose);
+                            Movement.move(rc, retreatTarget, lastLastLocation, 2, enemySoldierClose);                                
                             if (me.distanceSquaredTo(retreatTarget) <= 25 && enemies.length == 0) {
                                 selfDestructing = true;
                             }

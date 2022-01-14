@@ -98,22 +98,31 @@ strictfp class MinerStrategy {
     static MapLocation findNearbyMetals(RobotController rc, MapLocation me, MapLocation target) throws GameActionException {
         
         int distanceToTarget = me.distanceSquaredTo(target);
+        int leadCount = 0;
 
         for (MapLocation loc : rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared)) {
-            if (rc.senseLead(loc) > 10) {
+            leadCount = rc.senseLead(loc);
+            if (leadCount > 10) {
                 int distanceToLoc = me.distanceSquaredTo(loc);
                 if (distanceToLoc < distanceToTarget) {
                     target = loc;
                     distanceToTarget  = distanceToLoc;
                 }
-                if (distanceToLoc == 0) {
-                    break;
+            }
+            if (leadCount > 1 && me.distanceSquaredTo(loc) <= 2) {
+                while (rc.isActionReady() && rc.senseLead(loc) > 1) {
+                    rc.mineLead(loc);
                 }
             }
         }
 
         for (MapLocation loc : rc.senseNearbyLocationsWithGold(rc.getType().visionRadiusSquared)) {
             target = loc;
+            if (me.distanceSquaredTo(loc) <= 2) {
+                while (rc.senseGold(loc) > 0 && rc.isActionReady()) {
+                    rc.mineGold(loc);
+                }
+            }
             break;
         }
 
@@ -150,7 +159,7 @@ strictfp class MinerStrategy {
                 globalTarget = RobotPlayer.getRandomMapLocation();
             }
         }
-        if (me.distanceSquaredTo(globalTarget) <= 2) {
+        if (me.distanceSquaredTo(globalTarget) <= 9) {
             globalTarget = RobotPlayer.getRandomMapLocation();
         }
         MapLocation target = globalTarget;
@@ -160,16 +169,16 @@ strictfp class MinerStrategy {
         RobotInfo[] allies = rc.senseNearbyRobots(-1, rc.getTeam());
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
-        // if (allies.length > 0) {
-        //     for (RobotInfo ally : allies) {
-        //         if (ally.type == RobotType.MINER) {
-        //             if (target.distanceSquaredTo(ally.location) <= 4) {
-        //                 target = globalTarget;
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // }
+        if (allies.length > 0 && rc.senseLead(me) <= 1) {
+            for (RobotInfo ally : allies) {
+                if (ally.type == RobotType.MINER) {
+                    if (target.distanceSquaredTo(ally.location) <= 4) {
+                        target = globalTarget;
+                        break;
+                    }
+                }
+            }
+        }
 
 
         // * Should we flee/retreat?
@@ -184,7 +193,9 @@ strictfp class MinerStrategy {
                     } else {
                         fleeing = true;
                         fleeTarget = Targeting.getFallbackTarget(me, enemy.location);
-                        globalTarget = RobotPlayer.getRandomMapLocation();
+                        if (fleeTarget.x >= 0 && fleeTarget.y >= 0 && fleeTarget.x <= RobotPlayer.mapWidth && fleeTarget.y <= RobotPlayer.mapHeight) {
+                            globalTarget = fleeTarget;
+                        }
                     }
                     break;
                 }
@@ -201,7 +212,7 @@ strictfp class MinerStrategy {
         }
 
         // Mine
-        mine(rc, rc.getLocation());
+        // mine(rc, rc.getLocation());
 
         if (retreating && !selfDestructing) {
             MapLocation retreatTarget = Comms.getNearestArchonLocation(rc, me);
@@ -211,7 +222,7 @@ strictfp class MinerStrategy {
             }
 
             if (retreatTarget != null) {
-                RobotPlayer.move2(rc, retreatTarget, 2);
+                Movement.move(rc, retreatTarget, lastLastLocation, 2, false);
                 if (me.distanceSquaredTo(retreatTarget) <= 9) {
                     selfDestructing = true;
                 }
@@ -235,16 +246,17 @@ strictfp class MinerStrategy {
         
         if (!retreating) {
             if (fleeing && fleeTarget != null) {
-                RobotPlayer.move(rc, fleeTarget);
+                Movement.move(rc, fleeTarget, lastLastLocation, 1, false);
             } else if (!me.equals(target)) {
                 Movement.move(rc, target, lastLastLastLocation, 1, false);
                 RobotPlayer.move(rc, target);
+            } else {
+                RobotPlayer.stepOffRubble(rc, me);
             }
         }
 
-        if (rc.isMovementReady()) {
-            RobotPlayer.stepOffRubble(rc, me);
-        }
+        // if (rc.isMovementReady()) {
+        // }
 
         // int start = Clock.getBytecodeNum();
         // int end = Clock.getBytecodeNum();

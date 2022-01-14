@@ -150,7 +150,7 @@ strictfp class MinerStrategy {
                 globalTarget = RobotPlayer.getRandomMapLocation();
             }
         }
-        if (me.distanceSquaredTo(globalTarget) <= 2) {
+        if (me.distanceSquaredTo(globalTarget) <= 9) {
             globalTarget = RobotPlayer.getRandomMapLocation();
         }
         MapLocation target = globalTarget;
@@ -160,7 +160,7 @@ strictfp class MinerStrategy {
         RobotInfo[] allies = rc.senseNearbyRobots(-1, rc.getTeam());
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
-        if (allies.length > 0) {
+        if (allies.length > 0 && rc.senseLead(me) <= 1) {
             for (RobotInfo ally : allies) {
                 if (ally.type == RobotType.MINER) {
                     if (target.distanceSquaredTo(ally.location) <= 4) {
@@ -184,7 +184,9 @@ strictfp class MinerStrategy {
                     } else {
                         fleeing = true;
                         fleeTarget = Targeting.getFallbackTarget(me, enemy.location);
-                        globalTarget = RobotPlayer.getRandomMapLocation();
+                        if (fleeTarget.x >= 0 && fleeTarget.y >= 0 && fleeTarget.x <= RobotPlayer.mapWidth && fleeTarget.y <= RobotPlayer.mapHeight) {
+                            globalTarget = fleeTarget;
+                        }
                     }
                     break;
                 }

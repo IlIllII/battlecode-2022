@@ -4,5 +4,4 @@ player27 copies over player25 to test feature improvements after watching player
 
 Improvements include:
 
-1. Improved targeting for fleeing.
-2. 
+1. Removed double check to see if allies are by lead targets for miners.
