@@ -56,7 +56,7 @@ strictfp class SoldierStrategy {
             selfDestructing = false;
             selfDestructTimer = 0;
         }
-        if (currentHealth <= 11) {
+        if (currentHealth <= 11) { // TODO Should this be higher even?
             retreating = true;
         }
         if (currentHealth > 40) { // leave wiggle room heal as we move away
@@ -130,11 +130,11 @@ strictfp class SoldierStrategy {
         }
 
 
-        // * Dispatch differential movement.
+        // * Movement dispatch.
         if (rc.isMovementReady()) {
             if (!retreating) { // We are advancing.
                 if (!fallingBack) {
-                    if (attacked) {
+                    if (attacked || rc.getLocation().distanceSquaredTo(target) <= rc.getType().actionRadiusSquared) {
                         // We do not want to move onto rubble if we are in combat, but
                         // we also want to move if there aren't enemies in attack range.
                         Movement.moveButDontStepOnRubble(rc, target, 2, enemySoldierClose);
