@@ -1,4 +1,4 @@
-package player26;
+package player27;
 
 import battlecode.common.*;
 
