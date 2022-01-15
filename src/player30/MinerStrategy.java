@@ -1,5 +1,6 @@
-package player29;
+package player30;
 
+import org.w3c.dom.stylesheets.DocumentStyle;
 
 import battlecode.common.*;
 
@@ -56,7 +57,6 @@ strictfp class MinerStrategy {
             }
         }
 
-        // intersection
         if (mapWidth == 49 && mapHeight == 25) {
             MapLocation loc1 = new MapLocation(4, 12);
             MapLocation loc2 = new MapLocation(10, 12);
@@ -70,23 +70,8 @@ strictfp class MinerStrategy {
             return locs[RobotPlayer.rng.nextInt(8)];
         }
 
-        // fortress
         if (mapWidth == 60 && mapHeight == 30) {
             return new MapLocation(30, 16);
-        }
-
-        // squer
-        if (mapWidth == 25 && mapHeight == 25) {
-            return new MapLocation(12, 12);
-        }
-
-        // nottestsmall
-        if (mapWidth == 20 && mapHeight == 20) {
-            if (n > 50) {
-                return new MapLocation(2, 30);
-            } else {
-                return new MapLocation(30, 2);
-            }
         }
 
 
@@ -192,9 +177,10 @@ strictfp class MinerStrategy {
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         boolean dontSteal = false;
 
-        // Only steal when in enemy territory
-        if (allies.length > 0) {
-            dontSteal = true;
+        for (RobotInfo ally : allies) {
+            if (ally.type == RobotType.ARCHON) {
+                dontSteal = true;
+            }
         }
 
 

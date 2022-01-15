@@ -1,4 +1,4 @@
-package player29;
+package player30;
 
 
 import battlecode.common.*;
@@ -146,7 +146,7 @@ strictfp class ArchonStrategy {
             int n = RobotPlayer.rng.nextInt(100);
             int m = RobotPlayer.rng.nextInt(100);
             if (leadAmount > 70 && (m  > 100 / archonCount || leadAmount > 300)) {
-                if (n < 82) {
+                if (n < 88) {
                     buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
                     return true;
                 } else if (canBuildMiner) {
@@ -212,59 +212,20 @@ strictfp class ArchonStrategy {
         }
 
 
-        
-        
         if (archonCount <= 2) {
             roundCutoff = 20;
         }
-        
+
         MapLocation target = new MapLocation(1000, 1000);
         EnemyLocation[] globalEnemyLocations = Comms.getEnemyLocations(rc);
-        MapLocation me = rc.getLocation();
-        
 
-        MapLocation moveTarget = target;
-        int minDistance = 100000;
-        int minRubble = 100000;
 
-        for (MapLocation loc : rc.getAllLocationsWithinRadiusSquared(me, 10000)) {
-            if (rc.canSenseLocation(loc) && rc.senseRubble(loc) <= minRubble) {
-                if (rc.senseRubble(loc) < minRubble) {
-                    minDistance = me.distanceSquaredTo(loc);
-                    minRubble = rc.senseRubble(loc);
-                    moveTarget = loc;
-                } else if (me.distanceSquaredTo(loc) < minDistance) {
-                    moveTarget = loc;
-                    minDistance = me.distanceSquaredTo(loc);
-                    minRubble = rc.senseRubble(loc);
-                }
-            }
-        }
-        
-        int round = rc.getRoundNum();
-
-        if (round > 50 && !moveTarget.equals(me)) {
-            if (rc.isTransformReady() && rc.getMode().equals(RobotMode.TURRET) && rc.canTransform()) {
-                rc.transform();
-            }
-        }
-
-        if (rc.getMode().equals(RobotMode.PORTABLE)) {
-            if (me.equals(moveTarget)) {
-                if (rc.isTransformReady() && rc.canTransform()) {
-                    rc.transform();
-                }
-            }
-
-            if (rc.isMovementReady()) {
-                Movement.move(rc, moveTarget, target, 2, false);
-            }
-        }
-        
 
         int rcId = rc.getID();
         int id = rcId % 2 == 0 ? (rcId - 1) / 2 : (rcId - 2) / 2;
+        int round = rc.getRoundNum();
         int leadAmount = rc.getTeamLeadAmount(rc.getTeam());
+        MapLocation me = rc.getLocation();
         boolean movingAndFighting = false;
         
         RobotInfo[] enemiesInRange = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
@@ -328,10 +289,6 @@ strictfp class ArchonStrategy {
                 }
             }
         }
-
-
-
-        
 
         if (movingAndFighting) {
 

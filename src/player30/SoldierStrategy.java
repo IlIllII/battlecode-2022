@@ -1,4 +1,4 @@
-package player29;
+package player30;
 
 import battlecode.common.*;
 
@@ -57,10 +57,10 @@ strictfp class SoldierStrategy {
             selfDestructing = false;
             selfDestructTimer = 0;
         }
-        if (currentHealth <= 15) { // TODO Should this be higher even?
+        if (currentHealth <= 20) { // TODO Should this be higher even?
             retreating = true;
         }
-        if (currentHealth > 48) { // leave wiggle room heal as we move away
+        if (currentHealth > 40) { // leave wiggle room heal as we move away
             retreating = false;
             selfDestructing = false;
             selfDestructTimer = 0;
