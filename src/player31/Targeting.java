@@ -157,4 +157,88 @@ public class Targeting {
         return new MapLocation(me.x - x, me.y - y);
     }
 
+
+
+    static MapLocation getTargetFromGlobalAndLocalEnemyLocationsMAXHP(RobotController rc, RobotInfo[] nearbyEnemies, MapLocation backupTarget) throws GameActionException {
+        MapLocation me = rc.getLocation();
+        EnemyLocation[] globalEnemyLocations = Comms.getEnemyLocations(rc);
+        MapLocation target = null;
+        boolean foundGlobalTarget = false;
+        boolean foundDangerousTarget = false;
+        boolean foundLocalTarget = false;
+        int highestHPDangerousEnemy = 0;
+        int highestHPBenignEnemy = 0;
+        double closestDistanceToGlobalEnemy = 100000;
+
+        if (nearbyEnemies.length == 0) {
+            for (EnemyLocation globalEnemy : globalEnemyLocations) {
+                
+                if (globalEnemy == null || !globalEnemy.exists) {
+                    break;
+                }
+    
+                // System.out.println(globalEnemy.location.toString());
+                
+                boolean clearedGlobalEnemyFromArray = false;
+    
+                if (rc.canSenseLocation(globalEnemy.location)) {
+                    if (!rc.canSenseRobotAtLocation(globalEnemy.location) || rc.senseRobotAtLocation(globalEnemy.location).team.equals(rc.getTeam())) {
+                        Comms.clearEnemyLocation(rc, globalEnemy.index);
+                        clearedGlobalEnemyFromArray = true;
+                    }
+                }
+
+
+    
+                if (!clearedGlobalEnemyFromArray && me.distanceSquaredTo(globalEnemy.location) < closestDistanceToGlobalEnemy) {
+                    target = globalEnemy.location;
+                    closestDistanceToGlobalEnemy = me.distanceSquaredTo(target);
+                }
+            }
+        }
+
+        for (RobotInfo localEnemy : nearbyEnemies) {
+            if (localEnemy.type.equals(RobotType.SOLDIER)
+            || localEnemy.type.equals(RobotType.SAGE)
+            || localEnemy.type.equals(RobotType.WATCHTOWER)) {
+                if (localEnemy.health > highestHPDangerousEnemy) {
+                    target = localEnemy.location;
+                    highestHPDangerousEnemy = localEnemy.health;
+                    foundDangerousTarget = true;
+                    foundLocalTarget = true;
+                }
+            }
+
+            if (!foundDangerousTarget) {
+                if (localEnemy.health > highestHPBenignEnemy) {
+                    target = localEnemy.location;
+                    highestHPBenignEnemy = localEnemy.health;
+                    foundLocalTarget = true;
+                }
+            }
+        }
+
+
+        if (target != null && foundDangerousTarget) {
+            rc.setIndicatorString("reached setEnemyLoc");
+        }
+
+        if (target != null && foundLocalTarget && rc.senseRobotAtLocation(target).type == RobotType.ARCHON) {
+            rc.setIndicatorString("reached setEnemyLoc");
+            Comms.setOffensiveLocation(rc, target);
+        } else if (target != null && foundLocalTarget) {
+            Comms.setEnemyLocation(rc, target, globalEnemyLocations);
+        }
+
+
+        if (target == null) {
+            target = backupTarget;
+            if (me.distanceSquaredTo(backupTarget) <= 4) {
+                target = null;
+            }
+        }
+
+        return target;
+    }
+
 }

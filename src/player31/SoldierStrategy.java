@@ -57,7 +57,7 @@ strictfp class SoldierStrategy {
             selfDestructing = false;
             selfDestructTimer = 0;
         }
-        if (currentHealth <= 15) { // TODO Should this be higher even?
+        if (currentHealth <= 25) { // TODO Should this be higher even?
             retreating = true;
         }
         if (currentHealth > 48) { // leave wiggle room heal as we move away

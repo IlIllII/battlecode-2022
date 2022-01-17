@@ -193,6 +193,7 @@ strictfp class ArchonStrategy {
     static int transformTimer = 100;
     static int movingCounter = 0;
     static int repairCount = 0;
+    static int buildersProduced = 0;
 
     static void run(RobotController rc) throws GameActionException {
 

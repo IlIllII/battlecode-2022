@@ -5,12 +5,83 @@ import battlecode.common.*;
 strictfp class BuilderStrategy {
     static boolean selfDestruct = RobotPlayer.rng.nextInt(4) == 1;
     static MapLocation backupLocation = RobotPlayer.getRandomMapLocation();
+    static int labCount = 0;
 
 
     static void run(RobotController rc) throws GameActionException {
+        MapLocation me = rc.getLocation();
+        int round = rc.getRoundNum();
+        Team player = rc.getTeam();
+        Team opponent = rc.getTeam().opponent();
+        int leadAmount = rc.getTeamLeadAmount(player);
+
+        int x = RobotPlayer.mapWidth - me.x > RobotPlayer.mapWidth / 2 ? RobotPlayer.mapWidth : 0;
+        int y = RobotPlayer.mapHeight - me.y > RobotPlayer.mapHeight / 2 ? RobotPlayer.mapHeight : 0;
+
+        MapLocation target = new MapLocation(x, y);
+
+
+        RobotInfo[] allies = rc.senseNearbyRobots(-1, player);
+        MapLocation repairSpot = new MapLocation(0, 0);
+        boolean repairing = false;
+        for (int i = 0; i < allies.length; i++) {
+            if ((allies[i].type == RobotType.WATCHTOWER || allies[i].type == RobotType.LABORATORY)  && allies[i].mode == RobotMode.PROTOTYPE) {
+                repairSpot = allies[i].location;
+                repairing = true;
+                break;
+            }
+        }
+        if (repairing) {
+            if (me.distanceSquaredTo(repairSpot) > 1) {
+                target = repairSpot;
+            }
+            if (rc.canRepair(repairSpot)) {
+                rc.repair(repairSpot);
+            }
+        } else if (rc.senseNearbyRobots(-1, opponent).length < 3 && leadAmount > 200 && round > 200) {
+            for (int i = 1; i < RobotPlayer.directions.length; i += 2) {
+                if (rc.canBuildRobot(RobotType.WATCHTOWER, RobotPlayer.directions[i])) {
+                    MapLocation potentialLoc = rc.adjacentLocation(RobotPlayer.directions[i]);
+
+                    // if (RobotPlayer.isLandSuitableForBuilding(rc, potentialLoc)) {
+                        rc.buildRobot(RobotType.WATCHTOWER, RobotPlayer.directions[i]);
+                        break;
+                    // }
+                }
+            }
+        }
+        // } else if (labCount == 0 && rc.senseNearbyRobots(-1, opponent).length < 3 && leadAmount > 260 && round > 50) {
+        //     for (int i = 1; i < RobotPlayer.directions.length; i += 2) {
+        //         if (rc.canBuildRobot(RobotType.LABORATORY, RobotPlayer.directions[i])) {
+        //             MapLocation potentialLoc = rc.adjacentLocation(RobotPlayer.directions[i]);
+
+        //             if (RobotPlayer.isLandSuitableForBuilding(rc, potentialLoc)) {
+        //                 rc.buildRobot(RobotType.LABORATORY, RobotPlayer.directions[i]);
+        //                 labCount++;
+        //                 break;
+        //             }
+        //         }
+        //     }
+        // }
+
+        if (!repairing) {
+            Movement.move(rc, target, me, 1, false);
+        } else {
+            Movement.move(rc, repairSpot, me, 1, false);
+        }
+
+        rc.setIndicatorLine(me, target, 0, 0, 0);
+
+
+
+
+
+
+
+
+
         // int start = Clock.getBytecodeNum();
         // MapLocation me = rc.getLocation();
-        // int round = rc.getRoundNum();
 
         // if (round < 19) {
         //     selfDestruct = true;
@@ -29,35 +100,6 @@ strictfp class BuilderStrategy {
 
         // Team opponent = rc.getTeam().opponent();
         // Team player = rc.getTeam();
-        // RobotInfo[] allies = rc.senseNearbyRobots(-1, player);
-        // MapLocation repairSpot = new MapLocation(0, 0);
-        // boolean repairing = false;
-        // for (int i = 0; i < allies.length; i++) {
-        //     if (allies[i].type == RobotType.WATCHTOWER && allies[i].mode == RobotMode.PROTOTYPE) {
-        //         repairSpot = allies[i].location;
-        //         repairing = true;
-        //         break;
-        //     }
-        // }
-        // if (repairing) {
-        //     if (me.distanceSquaredTo(repairSpot) > 1) {
-        //         target = repairSpot;
-        //     }
-        //     if (rc.canRepair(repairSpot)) {
-        //         rc.repair(repairSpot);
-        //     }
-        // } else if (rc.senseNearbyRobots(-1, opponent).length < 3) {
-        //     for (int i = 1; i < RobotPlayer.directions.length; i += 2) {
-        //         if (rc.canBuildRobot(RobotType.WATCHTOWER, RobotPlayer.directions[i])) {
-        //             MapLocation potentialLoc = rc.adjacentLocation(RobotPlayer.directions[i]);
-
-        //             if (RobotPlayer.isLandSuitableForBuilding(rc, potentialLoc)) {
-        //                 rc.buildRobot(RobotType.WATCHTOWER, RobotPlayer.directions[i]);
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // }
 
         // int end = Clock.getBytecodeNum();
         // rc.setIndicatorString("" + (end - start));
