@@ -1,10 +1,10 @@
-package player32;
+package player33;
 
 
 import battlecode.common.*;
 
 
-strictfp class MinerStrategy {
+strictfp class MinerStrategyBigMap {
     static MapLocation globalTarget;
 
     static MapLocation earlyGameTarget(RobotController rc, int mapWidth, int mapHeight) {

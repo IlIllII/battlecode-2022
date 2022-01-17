@@ -1,8 +1,8 @@
-package player32;
+package player33;
 
 import battlecode.common.*;
 
-strictfp class BuilderStrategy {
+strictfp class BuilderStrategyBigMap {
     static boolean selfDestruct = RobotPlayer.rng.nextInt(4) == 1;
     static MapLocation backupLocation = RobotPlayer.getRandomMapLocation();
     static int labCount = 0;

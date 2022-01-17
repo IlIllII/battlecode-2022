@@ -1,9 +1,8 @@
-package player32;
+package player33;
 
 import battlecode.common.*;
 
-
-strictfp class SageStrategy {
+strictfp class SoldierStrategy {
 
     static RobotType myType = RobotType.SOLDIER;
     final static int ATTACK_RADIUS_SQUARED = myType.actionRadiusSquared;
@@ -16,16 +15,20 @@ strictfp class SageStrategy {
     static MapLocation lastLocation = new MapLocation(0, 0);
     static MapLocation lastLastLocation = new MapLocation(0, 0);
     static MapLocation lastLastLastLocation = new MapLocation(0, 0);
-    static MapLocation backupRetreatTarget;
-    static boolean selfDestructing = false;
+    static int MaxMovementCost = 0;
     static boolean retreating = false;
+    static boolean selfDestructing = false;
+    static MapLocation backupRetreatTarget;
+    // static MapLocation repairLoc = null;
+    // static boolean foundRepairSpot = false;
+    static int maxTargetingCost = 0;
+    static int lastTurnsHealth = 0;
     static int selfDestructTimer = 0;
-    static int lastTurnsHealth = 100;
-
+    static int healingCutoff = 25;
     
+
     static void run(RobotController rc) throws GameActionException {
 
-        
         // * Setting main variables
         boolean fallingBack = false;
         boolean enemySoldierClose = false;
@@ -36,12 +39,26 @@ strictfp class SageStrategy {
         RobotInfo[] allies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam());
         MapLocation offensiveTarget = Targeting.getOffensiveTarget(rc);
         MapLocation defensiveTarget = Targeting.getDefensiveTarget(rc);
-        MapLocation target = Targeting.getTargetFromGlobalAndLocalEnemyLocationsMAXHP(rc, enemies, backupLocation);
+        MapLocation target = Targeting.getTargetFromGlobalAndLocalEnemyLocations(rc, enemies, backupLocation);
+
+
 
         // * These values vary based on current conditions
         aliveTime++;
         if (aliveTime == 1) {
             backupRetreatTarget = me;
+            if (RobotPlayer.mapHeight < 30 && RobotPlayer.mapWidth < 30) {
+                healingCutoff = 25;
+            } else if (RobotPlayer.mapHeight < 30 || RobotPlayer.mapWidth < 30) {
+                healingCutoff = 20;
+            } else if (RobotPlayer.mapHeight < 40 || RobotPlayer.mapWidth < 40) {
+                healingCutoff = 17;
+            } else if (RobotPlayer.mapHeight < 50 || RobotPlayer.mapWidth < 50) {
+                healingCutoff = 15;
+            } else {
+                healingCutoff = 12;
+            }
+            healingCutoff = 25;
         }
         if (!lastLocation.equals(me)) {
             lastLastLastLocation = lastLastLocation;
@@ -55,10 +72,10 @@ strictfp class SageStrategy {
             selfDestructing = false;
             selfDestructTimer = 0;
         }
-        if (currentHealth <= 50) { // TODO Should this be higher even?
+        if (currentHealth <= healingCutoff) { // TODO Should this be higher even?
             retreating = true;
         }
-        if (currentHealth > 98) { // leave wiggle room heal as we move away
+        if (currentHealth > 48) { // leave wiggle room heal as we move away
             retreating = false;
             selfDestructing = false;
             selfDestructTimer = 0;
@@ -114,28 +131,7 @@ strictfp class SageStrategy {
 
         // Attack if able before moving.
         if (rc.isActionReady()) {
-            
-            MapLocation moveTarget = me;
-            int minDistance = 100000;
-            int minRubble = 100000;
-
-            for (MapLocation loc : rc.getAllLocationsWithinRadiusSquared(me, 16)) {
-                if (rc.canSenseLocation(loc) && rc.senseRubble(loc) <= minRubble) {
-                    if (rc.senseRubble(loc) < minRubble) {
-                        minDistance = me.distanceSquaredTo(loc);
-                        minRubble = rc.senseRubble(loc);
-                        moveTarget = loc;
-                    } else if (me.distanceSquaredTo(loc) < minDistance) {
-                        moveTarget = loc;
-                        minDistance = me.distanceSquaredTo(loc);
-                        minRubble = rc.senseRubble(loc);
-                    }
-                }
-            }
-
-            if (!moveTarget.equals(me) && me.distanceSquaredTo(target) <= rc.getType().actionRadiusSquared) {
-                target = moveTarget;
-            } else if (rc.canAttack(target)) {
+            if (rc.canAttack(target)) {
                 rc.attack(target);
                 attacked = true;
             }
@@ -147,10 +143,6 @@ strictfp class SageStrategy {
             int y = (target.y - me.y);
             target = new MapLocation(me.x - x, me.y - y);
             fallingBack = true;
-        }
-
-        if (rc.getActionCooldownTurns() > 50) {
-            retreating = true;
         }
 
 
@@ -202,17 +194,16 @@ strictfp class SageStrategy {
                     if (nearestFreeTile != null && !enemySoldierClose) {
                         RobotPlayer.move2(rc, nearestFreeTile, 2);
                         if (rc.getLocation().equals(nearestFreeTile)) {
-                            if (selfDestructTimer > 2000) {
+                            if (selfDestructTimer > 10) {
                                 if (currentHealth < 20) {
                                     System.out.println("Disintegrating");
-                                    // rc.disintegrate();
+                                    rc.disintegrate();
                                 } else {
                                     selfDestructing = false;
                                     retreating = false;
                                 }
                             }
                         }
-
                     } else {
                         RobotPlayer.move2(rc, target, 2);
                     }
@@ -222,153 +213,12 @@ strictfp class SageStrategy {
         }
 
         // * Check for a cheeky attack on the tail end
-        // if (rc.isActionReady()) {
-        //     if (rc.canAttack(target)) {
-        //         rc.attack(target);
-        //     }
-        // }
+        if (rc.isActionReady()) {
+            if (rc.canAttack(target)) {
+                rc.attack(target);
+            }
+        }
 
         rc.setIndicatorLine(rc.getLocation(), target, 0, 0, 0);
-        rc.setIndicatorString("" + rc.getMovementCooldownTurns());
-
-        
-        
-        // MapLocation me = rc.getLocation();
-
-        // if (me.distanceSquaredTo(backupLocation) <= 4) {
-        //     backupLocation = RobotPlayer.getRandomMapLocation();
-        // }
-
-
-        // // if (aliveTime == 0) {
-        // //     bfs = new AdvancedMove(rc);
-        // // }
-
-        // aliveTime++;
-        // if (aliveTime == 2) {
-        //     repairLocation = me;
-        // }
-        
-
-        // MapLocation target = RobotPlayer.locateCombatTarget(rc, me, backupLocation);
-        // RobotInfo[] enemies = rc.senseNearbyRobots(-1, RobotPlayer.opponent);
-
-        // RobotPlayer.attackGlobalTargetIfAble(rc, target, me);
-
-
-
-        // TripleTarget localTargets = RobotPlayer.acquireLocalTargets(rc, target, enemies, me);
-
-        // MapLocation primaryTarget = localTargets.primary;
-        // MapLocation secondaryTarget = localTargets.secondary;
-        // MapLocation tertiaryTarget = localTargets.tertiary;
-
-        // // if (rc.getRoundNum() < 45) {
-        // //     tertiaryTarget = rc.adjacentLocation(RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)]);
-        // // }
-
-
-        // if (rc.senseNearbyRobots(2, rc.getTeam()).length > 4) {
-        //     RobotPlayer.move2(rc, primaryTarget, 2);
-        // }
-        // if (rc.canAttack(primaryTarget)) {
-        //     rc.attack(primaryTarget);
-        //     Comms.setEnemyLocation(rc, primaryTarget);
-        // }
-        // if (rc.canAttack(secondaryTarget)) {
-        //     rc.attack(secondaryTarget);
-        // }
-        // if (rc.canAttack(tertiaryTarget)) {
-        //     rc.attack(tertiaryTarget);
-        // }
-
-        // // if (rc.senseNearbyRobots(-1, rc.getTeam()).length < 5 /* && rc.canSenseLocation(primaryTarget) && rc.canSenseRobotAtLocation(primaryTarget) && rc.senseRobotAtLocation(primaryTarget).type.equals(RobotType.SOLDIER) */ ) {
-        // //     RobotPlayer.move2(rc, rc.adjacentLocation(me.directionTo(primaryTarget).opposite()).add(me.directionTo(primaryTarget)), 3);
-        // // }
-
-        // if (rc.isMovementReady()) {
-
-        //     if (healing || rc.getHealth() < (rc.getType().health / 4) || !rc.isActionReady()) {
-
-        //         ArchonLocation[] archLocs = Comms.getArchonLocations(rc);
-
-        //         MapLocation repairLoc = null;
-
-        //         boolean foundRepairSpot = false;
-
-        //         while (!foundRepairSpot) {
-        //             for (ArchonLocation archLoc : archLocs) {
-        //                 // if (repairLoc == null || (archLoc.exists && me.distanceSquaredTo(repairLoc) > me.distanceSquaredTo(archLoc.location))) {
-        //                 //     repairLoc = archLoc.location;
-        //                 // }
-        //                 if (archLoc.exists && RobotPlayer.rng.nextInt(4) == 0) {
-        //                     repairLoc = archLoc.location;
-        //                     foundRepairSpot = true;
-        //                 }
-        //             }
-        //         }
-
-        //         tertiaryTarget = repairLoc;
-        //         healing = true;
-        //     }
-
-        //     if (rc.getHealth() > rc.getType().health && rc.getActionCooldownTurns() < 5) {
-        //         healing = false;
-        //     }
-
-        //     // Experimental move.
-        //     int startTime = Clock.getBytecodeNum();
-
-
-
-            
-        //     try {
-        //         Direction dir = AdvancedMove.getBestDir(rc, tertiaryTarget);
-
-        //         if (dir != null && !dir.equals(Direction.CENTER) && rc.canMove(dir)) {
-        //             if (!rc.adjacentLocation(dir).equals(lastLocation)) {
-        //                 rc.move(dir);
-        //                 lastLocation = rc.getLocation();
-        //             } else {
-        //                 if (rc.canMove(rc.getLocation().directionTo(tertiaryTarget))) {
-        //                     RobotPlayer.move(rc, tertiaryTarget);
-        //                 }
-        //             }
-        //         }
-        //     } catch (Exception e) {
-        //         //TODO: handle exception
-        //         System.out.println("Move returned null");;
-        //     }
-        //     // RobotPlayer.move2(rc, tertiaryTarget, recursionLimit);
-
-
-        //     int end = Clock.getBytecodeNum();
-
-        //     if ((end - startTime) > longestTime) {
-        //         longestTime = (end - startTime);
-        //     }
-        //     rc.setIndicatorString("" + longestTime);
-        //     rc.setIndicatorLine(me, tertiaryTarget, 1000, 0, 1000);;
-
-        //     // Fall back to simple move incase other move doesn't work.
-        //     RobotPlayer.move(rc, tertiaryTarget);
-
-
-        //     // RobotPlayer.move(rc, tertiaryTarget);
-
-        //     if (rc.canAttack(tertiaryTarget)) {
-        //         rc.attack(tertiaryTarget);
-        //     }
-        // } /* else {
-        //     RobotPlayer.stepOffRubble(rc, me);
-        // } */
-        // if (!rc.isActionReady() && rc.isMovementReady()) {
-        //     MapLocation retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
-        //     retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
-        //     retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
-        //     retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
-        //     retreatMove = rc.adjacentLocation(me.directionTo(primaryTarget).opposite());
-        //     RobotPlayer.move(rc, retreatMove);
-        // }   
     }
 }

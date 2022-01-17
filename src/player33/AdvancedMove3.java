@@ -1,4 +1,4 @@
-package player32;
+package player33;
 
 import battlecode.common.Clock;
 import battlecode.common.Direction;

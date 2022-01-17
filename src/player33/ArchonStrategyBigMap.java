@@ -1,10 +1,10 @@
-package player32;
+package player33;
 
 
 import battlecode.common.*;
 
 
-strictfp class ArchonStrategy {
+strictfp class ArchonStrategyBigMap {
     static int[] sharedArray = new int[64];
     static int radiusSquared = RobotType.ARCHON.visionRadiusSquared;
 
@@ -149,7 +149,7 @@ strictfp class ArchonStrategy {
             // 60 and 100
             // 100 and 140 for big maps
 
-            if (round > 100 && round < 140 && archonCount > 1) {
+            if (round > 80 && round < 110 && archonCount > 1) {
                 buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
             } else {
                 if (leadAmount > 70 && (m  < 100 / archonCount || leadAmount > 200)) {
@@ -304,7 +304,6 @@ strictfp class ArchonStrategy {
                 if (rc.getMode().equals(RobotMode.PORTABLE)) {
                     if (me.distanceSquaredTo(archLocs[firstArch].location) <= 2) {
                         if (rc.isTransformReady() && rc.canTransform()) {
-                            rc.transform();
                             relocatedToMainArchon = true;
                         }
                     }

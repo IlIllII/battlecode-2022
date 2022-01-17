@@ -3439,7 +3439,7 @@ public class AdvancedMove4 /* extends BFS */ {
             // }
 
             int end = Clock.getBytecodeNum();
-            rc.setIndicatorString("Move Timing: " + (end - start));
+            // rc.setIndicatorString("Move Timing: " + (end - start));
 
             return ans;
         } catch (Exception e) {

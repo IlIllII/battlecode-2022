@@ -1,4 +1,4 @@
-package player32;
+package player33;
 
 
 import battlecode.common.*;
@@ -145,28 +145,17 @@ strictfp class ArchonStrategy {
 
             int n = RobotPlayer.rng.nextInt(100);
             int m = RobotPlayer.rng.nextInt(100);
-
-            // 60 and 100
-            // 100 and 140 for big maps
-
-            if (round > 100 && round < 140 && archonCount > 1) {
-                buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
-            } else {
-                if (leadAmount > 70 && (m  < 100 / archonCount || leadAmount > 200)) {
-                    if (n < 50) {
-                        buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-                        return true;
-                    } else if (canBuildMiner && n < 70) {
-                        buildUnit(rc, RobotType.MINER, Direction.CENTER);
-                        return true;
-                    } else if (freeTiles) {
-                        buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
-                    } else {
-                        buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
-                    }
+            if (leadAmount > 70 && (m  < 100 / archonCount || leadAmount > 200)) {
+                if (n < 70) {
+                    buildUnit(rc, RobotType.SOLDIER, Direction.CENTER);
+                    return true;
+                } else if (canBuildMiner && n < 80) {
+                    buildUnit(rc, RobotType.MINER, Direction.CENTER);
+                    return true;
+                } else if (freeTiles) {
+                    buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
                 }
             }
-
         }
         return false;
         
@@ -226,8 +215,7 @@ strictfp class ArchonStrategy {
             roundCutoff = 30;
         }
 
-        
-        
+
         
         
         
@@ -238,21 +226,21 @@ strictfp class ArchonStrategy {
         MapLocation target = new MapLocation(1000, 1000);
         EnemyLocation[] globalEnemyLocations = Comms.getEnemyLocations(rc);
         MapLocation me = rc.getLocation();
-        
+
         int firstArch = 3;
-        
+
         for (int i = 0; i < archLocs.length; i++) {
             if (archLocs[i].exists && i < firstArch) {
                 firstArch = i;
             }
         }
-        
+
         
         
         MapLocation moveTarget = target;
         int minDistance = 100000;
         int minRubble = 100000;
-        
+
         for (MapLocation loc : rc.getAllLocationsWithinRadiusSquared(me, 10000)) {
             if (rc.canSenseLocation(loc) && rc.senseRubble(loc) <= minRubble) {
                 if (rc.senseRubble(loc) < minRubble) {
@@ -273,10 +261,6 @@ strictfp class ArchonStrategy {
         int leadAmount = rc.getTeamLeadAmount(rc.getTeam());
         boolean movingAndFighting = false;
         boolean freeTiles = false;
-        
-
-
-
 
         RobotInfo[] enemiesInRange = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         RobotInfo[] alliedLocs = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam());
@@ -304,7 +288,6 @@ strictfp class ArchonStrategy {
                 if (rc.getMode().equals(RobotMode.PORTABLE)) {
                     if (me.distanceSquaredTo(archLocs[firstArch].location) <= 2) {
                         if (rc.isTransformReady() && rc.canTransform()) {
-                            rc.transform();
                             relocatedToMainArchon = true;
                         }
                     }
@@ -319,9 +302,6 @@ strictfp class ArchonStrategy {
             relocatedToMainArchon = true;
         }
         
-
-
-
         if ((relocatedToMainArchon || id == firstArch) && round > 50 && !moveTarget.equals(me) && rc.senseRubble(me) > 0) {
             if (rc.isTransformReady() && rc.getMode().equals(RobotMode.TURRET) && rc.canTransform()) {
                 rc.transform();
@@ -351,12 +331,10 @@ strictfp class ArchonStrategy {
         }
 
         if (round % 10 == 0) {
-            if (id == firstArch) {
-                if (round > 200) {
-                    Comms.clearArchonLocations(rc);
-                }
-                Comms.clearEnemyLocations(rc);
+            if (round > 200) {
+                Comms.clearArchonLocations(rc);
             }
+            Comms.clearEnemyLocations(rc);
         }
 
         RobotInfo[] enemyLocs = rc.senseNearbyRobots(radiusSquared, RobotPlayer.opponent);
@@ -373,11 +351,7 @@ strictfp class ArchonStrategy {
             Comms.setArchonLocation(rc, me, false, id);
         }
 
-        if (round < 1000) {
-            executeBuildStrategy(rc, me, round, leadAmount, archonCount, roundCutoff, archLocs, enemiesInRange, alliedLocs, freeTiles);
-        } else if (round > 1000 && leadAmount > 300 || rc.getTeamGoldAmount(rc.getTeam()) > 0) {
-            executeBuildStrategy(rc, me, round, leadAmount, archonCount, roundCutoff, archLocs, enemiesInRange, alliedLocs, freeTiles);
-        }
+        executeBuildStrategy(rc, me, round, leadAmount, archonCount, roundCutoff, archLocs, enemiesInRange, alliedLocs, freeTiles);
 
         // if (round < 30) {
         //     executeBuildStrategy(rc, me, round, leadAmount, archonCount, roundCutoff, archLocs, enemiesInRange, alliedLocs);
@@ -505,7 +479,14 @@ strictfp class ArchonStrategy {
         rc.setIndicatorLine(me, target, 100, 100, 100);
         rc.setIndicatorString("Repairs: " + repairCount);
 
-        rc.setIndicatorString("ACD: " + rc.getActionCooldownTurns() + ", MCD: " + rc.getMovementCooldownTurns());
+        double x;
+
+        int startTime = Clock.getBytecodeNum();
+        
+        x = 10.0 / 4.0;
+
+        int endTime = Clock.getBytecodeNum();
+        rc.setIndicatorString("Time: " + (endTime - startTime));
 
     }
 }

@@ -1,4 +1,4 @@
-package player32;
+package player33;
 
 
 import battlecode.common.*;
@@ -12,7 +12,7 @@ strictfp class MinerStrategy {
 
 
         MapLocation randLoc = RobotPlayer.getRandomMapLocation();
-        return randLoc; // ! We can change this after the tourney.
+        return randLoc;
 
         // int n = RobotPlayer.rng.nextInt(100);
         // MapLocation me = rc.getLocation();
@@ -114,52 +114,20 @@ strictfp class MinerStrategy {
     }
 
 
-    static MapLocation findNearbyMetals(RobotController rc, MapLocation me, MapLocation target, boolean fleeing, boolean dontSteal, RobotInfo[] allies, MapLocation backupRetreatLocation) throws GameActionException {
+    static MapLocation findNearbyMetals(RobotController rc, MapLocation me, MapLocation target, boolean fleeing, boolean dontSteal) throws GameActionException {
         
         int distanceToTarget = me.distanceSquaredTo(target);
         int leadCount = 0;
 
         int miningCutoff = fleeing ? 0 : 1;
-
-
-        int minDistance = 10000;
-        for (ArchonLocation archLoc : Comms.getArchonLocations(rc)) {
-            if (me.distanceSquaredTo(archLoc.location) < minDistance) {
-                minDistance = me.distanceSquaredTo(archLoc.location);
-            }
-        }
-
-        if (me.distanceSquaredTo(backupRetreatLocation) < minDistance) {
-            minDistance = me.distanceSquaredTo(backupRetreatLocation);
-        }
-
-        if (minDistance != 10000 && minDistance > 144) {
-            dontSteal = false;
-        } else if (minDistance < 144) {
-            dontSteal = true;
-        }
-
-        rc.setIndicatorString("" + minDistance);
-
-        // for (RobotInfo ally: allies) {
-        //     if (ally.type.equals(RobotType.ARCHON)) {
-        //         dontSteal = true;
-        //     }
-        // }
-        
-
-        int leadCutoff = 10;
         
         if (dontSteal) {
             miningCutoff = 1;
-        } else {
-            miningCutoff = 0;
-            leadCutoff = 0;
         }
 
         for (MapLocation loc : rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared)) {
             leadCount = rc.senseLead(loc);
-            if (leadCount > leadCutoff) {
+            if (leadCount > 10) {
                 int distanceToLoc = me.distanceSquaredTo(loc);
                 if (distanceToLoc < distanceToTarget) {
                     target = loc;
@@ -224,7 +192,7 @@ strictfp class MinerStrategy {
 
         RobotInfo[] allies = rc.senseNearbyRobots(-1, rc.getTeam());
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        boolean dontSteal = true;
+        boolean dontSteal = false;
 
         // Only steal when in enemy territory
         if (allies.length > 0) {
@@ -257,7 +225,7 @@ strictfp class MinerStrategy {
         }
 
         
-        target = findNearbyMetals(rc, me, target, fleeing, dontSteal, allies, backupRetreatTarget);
+        target = findNearbyMetals(rc, me, target, fleeing, dontSteal);
         
 
         if (allies.length > 0 && rc.senseLead(me) <= 1) {
@@ -331,7 +299,7 @@ strictfp class MinerStrategy {
         // int start = Clock.getBytecodeNum();
         // int end = Clock.getBytecodeNum();
         // int leftB = Clock.getBytecodesLeft();
-        // rc.setIndicatorString(target.toString());
+        rc.setIndicatorString(target.toString());
         rc.setIndicatorDot(target, 1000, 0, 0);
         
     }

@@ -1,11 +1,11 @@
-package player32;
+package player33;
 
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
-public class AdvancedMove3 /* extends BFS */ {
+public class AdvancedMove4 /* extends BFS */ {
 
     // AdvancedMove(RobotController rc) {
     //     super(rc);
@@ -515,9 +515,9 @@ public class AdvancedMove3 /* extends BFS */ {
         Direction northEast = north.rotateRight();
         Direction west = north.rotateLeft().rotateLeft();
         Direction east = north.rotateRight().rotateRight();
-        Direction southWest = north.opposite().rotateRight();
-        Direction southEast = north.opposite().rotateRight();
-        Direction south = north.opposite();
+        // Direction southWest = north.opposite().rotateRight();
+        // Direction southEast = north.opposite().rotateRight();
+        // Direction south = north.opposite();
 
 
         l84 = rc.getLocation();
@@ -681,91 +681,10 @@ public class AdvancedMove3 /* extends BFS */ {
 
 
 
-        l31 = l32.add(south);
-        v31 = 1000000;
-        d31 = null;
-
-        l30 = l31.add(south);
-        v30 = 1000000;
-        d30 = null;
-
-        l44 = l45.add(south);
-        v44 = 1000000;
-        d44 = null;
-
-        l43 = l44.add(south);
-        v43 = 1000000;
-        d43 = null;
-
-        l42 = l43.add(south);
-        v42 = 1000000;
-        d42 = null;
-
-        l57 = l58.add(south);
-        v57 = 1000000;
-        d57 = null;
-
-        l56 = l57.add(south);
-        v56 = 1000000;
-        d56 = null;
-
-        l55 = l56.add(south);
-        v55 = 1000000;
-        d55 = null;
-
-        l70 = l71.add(south);
-        v70 = 1000000;
-        d70 = null;
 
 
-        l69 = l70.add(south);
-        v69 = 1000000;
-        d69 = null;
-
-        l83 = l84.add(south);
-        v83 = 1000000;
-        d83 = null;
-
-        l96 = l97.add(south);
-        v96 = 1000000;
-        d96 = null;
-
-        l95 = l96.add(south);
-        v95 = 1000000;
-        d95 = null;
-
-        l109 = l110.add(south);
-        v109 = 1000000;
-        d109 = null;
-
-        l108 = l109.add(south);
-        v108 = 1000000;
-        d108 = null;
-
-        l107 = l108.add(south);
-        v107 = 1000000;
-        d107 = null;
-
-        l122 = l123.add(south);
-        v122 = 1000000;
-        d122 = null;
-
-        l121 = l122.add(south);
-        v121 = 1000000;
-        d121 = null;
 
 
-        l120 = l121.add(south);
-        v120 = 1000000;
-        d120 = null;
-
-        l135 = l136.add(south);
-        v135 = 1000000;
-        d135 = null;
-
-        l134 = l135.add(south);
-        v134 = 1000000;
-        d134 = null;
 
 
 
@@ -1079,21 +998,21 @@ public class AdvancedMove3 /* extends BFS */ {
                     d71 = west;
                 }
             }
-            if (rc.canSenseLocation(l83)) {
-                if (rc.isLocationOccupied(l83)) {
-                    p83 = 100;
-                } else {
-                    p83 = rc.senseRubble(l83) + 10;
-                }
-                    if (v83 > v84 + p83) {
-                        v83 = v84 + p83;
-                        d83 = south;
-                    }
-                    if (v83 > v71 + p83) {
-                        v83 = v71 + p83;
-                        d83 = d71;
-                    }
-            }
+            // if (rc.canSenseLocation(l83)) {
+            //     if (rc.isLocationOccupied(l83)) {
+            //         p83 = 100;
+            //     } else {
+            //         p83 = rc.senseRubble(l83) + 10;
+            //     }
+            //         if (v83 > v84 + p83) {
+            //             v83 = v84 + p83;
+            //             d83 = south;
+            //         }
+            //         if (v83 > v71 + p83) {
+            //             v83 = v71 + p83;
+            //             d83 = d71;
+            //         }
+            // }
             if (rc.canSenseLocation(l85)) {
                 if (rc.isLocationOccupied(l85)) {
                     p85 = 100;
@@ -1128,25 +1047,25 @@ public class AdvancedMove3 /* extends BFS */ {
                         d97 = d83;
                     }
             }
-            if (rc.canSenseLocation(l70)) {
-                if (rc.isLocationOccupied(l70)) {
-                    p70 = 100;
-                } else {
-                    p70 = rc.senseRubble(l70) + 10;
-                }
-                    if (v70 > v84 + p70) {
-                        v70 = v84 + p70;
-                        d70 = southWest;
-                    }
-                    if (v70 > v71 + p70) {
-                        v70 = v71 + p70;
-                        d70 = d71;
-                    }
-                    if (v70 > v83 + p70) {
-                        v70 = v83 + p70;
-                        d70 = d83;
-                    }
-            }
+            // if (rc.canSenseLocation(l70)) {
+            //     if (rc.isLocationOccupied(l70)) {
+            //         p70 = 100;
+            //     } else {
+            //         p70 = rc.senseRubble(l70) + 10;
+            //     }
+            //         if (v70 > v84 + p70) {
+            //             v70 = v84 + p70;
+            //             d70 = southWest;
+            //         }
+            //         if (v70 > v71 + p70) {
+            //             v70 = v71 + p70;
+            //             d70 = d71;
+            //         }
+            //         if (v70 > v83 + p70) {
+            //             v70 = v83 + p70;
+            //             d70 = d83;
+            //         }
+            // }
             if (rc.canSenseLocation(l72)) {
                 if (rc.isLocationOccupied(l72)) {
                     p72 = 100;
@@ -1166,25 +1085,25 @@ public class AdvancedMove3 /* extends BFS */ {
                         d72 = d85;
                     }
             }
-            if (rc.canSenseLocation(l96)) {         
-                if (rc.isLocationOccupied(l96)) {
-                    p96 = 100;
-                    } else {
-                    p96 = rc.senseRubble(l96) + 10;
-                    }
-                    if (v96 > v84 + p96) {
-                        v96 = v84 + p96;
-                        d96 = southEast;
-                    }
-                    if (v96 > v97 + p96) {
-                        v96 = v97 + p96;
-                        d96 = d97;
-                    }
-                    if (v96 > v83 + p96) {
-                        v96 = v83 + p96;
-                        d96 = d83;
-                    }
-            }
+            // if (rc.canSenseLocation(l96)) {         
+            //     if (rc.isLocationOccupied(l96)) {
+            //         p96 = 100;
+            //         } else {
+            //         p96 = rc.senseRubble(l96) + 10;
+            //         }
+            //         if (v96 > v84 + p96) {
+            //             v96 = v84 + p96;
+            //             d96 = southEast;
+            //         }
+            //         if (v96 > v97 + p96) {
+            //             v96 = v97 + p96;
+            //             d96 = d97;
+            //         }
+            //         if (v96 > v83 + p96) {
+            //             v96 = v83 + p96;
+            //             d96 = d83;
+            //         }
+            // }
             if (rc.canSenseLocation(l98)) {
                 if (rc.isLocationOccupied(l98)) {
                     p98 = 100;
@@ -1210,10 +1129,10 @@ public class AdvancedMove3 /* extends BFS */ {
                         v58 = v71 + p58;
                         d58 = d71;
                     }
-                    if (v58 > v70 + p58) {
-                        v58 = v70 + p58;
-                        d58 = d70;
-                    }
+                    // if (v58 > v70 + p58) {
+                    //     v58 = v70 + p58;
+                    //     d58 = d70;
+                    // }
                     if (v58 > v72 + p58) {
                         v58 = v72 + p58;
                         d58 = d72;
@@ -1259,26 +1178,26 @@ public class AdvancedMove3 /* extends BFS */ {
                         v110 = v98 + p110;
                         d110 = d98;
                     }
-                    if (v110 > v96 + p110) {
-                        v110 = v96 + p110;
-                        d110 = d96;
-                    }
+                    // if (v110 > v96 + p110) {
+                    //     v110 = v96 + p110;
+                    //     d110 = d96;
+                    // }
             }
-            if (rc.canSenseLocation(l57)) {
-                    p57 = rc.senseRubble(l57) + 10;
-                    if (v57 > v71 + p57) {
-                        v57 = v71 + p57;
-                        d57 = d71;
-                    }
-                    if (v57 > v70 + p57) {
-                        v57 = v70 + p57;
-                        d57 = d70;
-                    }
-                    if (v57 > v58 + p57) {
-                        v57 = v58 + p57;
-                        d57 = d58;
-                    }
-            }
+            // if (rc.canSenseLocation(l57)) {
+            //         p57 = rc.senseRubble(l57) + 10;
+            //         if (v57 > v71 + p57) {
+            //             v57 = v71 + p57;
+            //             d57 = d71;
+            //         }
+            //         if (v57 > v70 + p57) {
+            //             v57 = v70 + p57;
+            //             d57 = d70;
+            //         }
+            //         if (v57 > v58 + p57) {
+            //             v57 = v58 + p57;
+            //             d57 = d58;
+            //         }
+            // }
             if (rc.canSenseLocation(l59)) {
                     p59 = rc.senseRubble(l59) + 10;
                     if (v59 > v71 + p59) {
@@ -1294,25 +1213,25 @@ public class AdvancedMove3 /* extends BFS */ {
                         d59 = d58;
                     }
             }
-            if (rc.canSenseLocation(l69)) {
-                    p69 = rc.senseRubble(l69) + 10;
-                    if (v69 > v83 + p69) {
-                        v69 = v83 + p69;
-                        d69 = d83;
-                    }
-                    if (v69 > v70 + p69) {
-                        v69 = v70 + p69;
-                        d69 = d70;
-                    }
-                    // if (v69 > v82 + p69) {
-                    //     v69 = v82 + p69;
-                    //     d69 = d82;
-                    // }
-                    if (v69 > v57 + p69) {
-                        v69 = v57 + p69;
-                        d69 = d57;
-                    }
-            }
+            // if (rc.canSenseLocation(l69)) {
+            //         p69 = rc.senseRubble(l69) + 10;
+            //         if (v69 > v83 + p69) {
+            //             v69 = v83 + p69;
+            //             d69 = d83;
+            //         }
+            //         if (v69 > v70 + p69) {
+            //             v69 = v70 + p69;
+            //             d69 = d70;
+            //         }
+            //         // if (v69 > v82 + p69) {
+            //         //     v69 = v82 + p69;
+            //         //     d69 = d82;
+            //         // }
+            //         if (v69 > v57 + p69) {
+            //             v69 = v57 + p69;
+            //             d69 = d57;
+            //         }
+            // }
             if (rc.canSenseLocation(l73)) {
                     p73 = rc.senseRubble(l73) + 10;
                     if (v73 > v85 + p73) {
@@ -1332,21 +1251,21 @@ public class AdvancedMove3 /* extends BFS */ {
                         d73 = d59;
                     }
             }
-            if (rc.canSenseLocation(l95)) {
-                    p95 = rc.senseRubble(l95) + 10;
-                    if (v95 > v83 + p95) {
-                        v95 = v83 + p95;
-                        d95 = d83;
-                    }
-                    if (v95 > v96 + p95) {
-                        v95 = v96 + p95;
-                        d95 = d96;
-                    }
-                    // if (v95 > v82 + p95) {
-                    //     v95 = v82 + p95;
-                    //     d95 = d82;
-                    // }
-            }
+            // if (rc.canSenseLocation(l95)) {
+            //         p95 = rc.senseRubble(l95) + 10;
+            //         if (v95 > v83 + p95) {
+            //             v95 = v83 + p95;
+            //             d95 = d83;
+            //         }
+            //         if (v95 > v96 + p95) {
+            //             v95 = v96 + p95;
+            //             d95 = d96;
+            //         }
+            //         // if (v95 > v82 + p95) {
+            //         //     v95 = v82 + p95;
+            //         //     d95 = d82;
+            //         // }
+            // }
             if (rc.canSenseLocation(l99)) {
                     p99 = rc.senseRubble(l99) + 10;
                     if (v99 > v85 + p99) {
@@ -1362,25 +1281,25 @@ public class AdvancedMove3 /* extends BFS */ {
                         d99 = d86;
                     }
             }
-            if (rc.canSenseLocation(l109)) {
-                    p109 = rc.senseRubble(l109) + 10;
-                    if (v109 > v97 + p109) {
-                        v109 = v97 + p109;
-                        d109 = d97;
-                    }
-                    if (v109 > v96 + p109) {
-                        v109 = v96 + p109;
-                        d109 = d96;
-                    }
-                    if (v109 > v110 + p109) {
-                        v109 = v110 + p109;
-                        d109 = d110;
-                    }
-                    if (v109 > v95 + p109) {
-                        v109 = v95 + p109;
-                        d109 = d95;
-                    }
-            }
+            // if (rc.canSenseLocation(l109)) {
+            //         p109 = rc.senseRubble(l109) + 10;
+            //         if (v109 > v97 + p109) {
+            //             v109 = v97 + p109;
+            //             d109 = d97;
+            //         }
+            //         if (v109 > v96 + p109) {
+            //             v109 = v96 + p109;
+            //             d109 = d96;
+            //         }
+            //         if (v109 > v110 + p109) {
+            //             v109 = v110 + p109;
+            //             d109 = d110;
+            //         }
+            //         if (v109 > v95 + p109) {
+            //             v109 = v95 + p109;
+            //             d109 = d95;
+            //         }
+            // }
             if (rc.canSenseLocation(l111)) {
                     p111 = rc.senseRubble(l111) + 10;
                     if (v111 > v97 + p111) {
@@ -1400,21 +1319,21 @@ public class AdvancedMove3 /* extends BFS */ {
                         d111 = d99;
                     }
             }
-            if (rc.canSenseLocation(l56)) {
-                    p56 = rc.senseRubble(l56) + 10;
-                    if (v56 > v70 + p56) {
-                        v56 = v70 + p56;
-                        d56 = d70;
-                    }
-                    if (v56 > v57 + p56) {
-                        v56 = v57 + p56;
-                        d56 = d57;
-                    }
-                    if (v56 > v69 + p56) {
-                        v56 = v69 + p56;
-                        d56 = d69;
-                    }
-            }
+            // if (rc.canSenseLocation(l56)) {
+            //         p56 = rc.senseRubble(l56) + 10;
+            //         if (v56 > v70 + p56) {
+            //             v56 = v70 + p56;
+            //             d56 = d70;
+            //         }
+            //         if (v56 > v57 + p56) {
+            //             v56 = v57 + p56;
+            //             d56 = d57;
+            //         }
+            //         if (v56 > v69 + p56) {
+            //             v56 = v69 + p56;
+            //             d56 = d69;
+            //         }
+            // }
             if (rc.canSenseLocation(l60)) {
                     p60 = rc.senseRubble(l60) + 10;
                     if (v60 > v72 + p60) {
@@ -1430,21 +1349,21 @@ public class AdvancedMove3 /* extends BFS */ {
                         d60 = d73;
                     }
             }
-            if (rc.canSenseLocation(l108)) {
-                    p108 = rc.senseRubble(l108) + 10;
-                    if (v108 > v96 + p108) {
-                        v108 = v96 + p108;
-                        d108 = d96;
-                    }
-                    if (v108 > v109 + p108) {
-                        v108 = v109 + p108;
-                        d108 = d109;
-                    }
-                    if (v108 > v95 + p108) {
-                        v108 = v95 + p108;
-                        d108 = d95;
-                    }
-            }
+            // if (rc.canSenseLocation(l108)) {
+            //         p108 = rc.senseRubble(l108) + 10;
+            //         if (v108 > v96 + p108) {
+            //             v108 = v96 + p108;
+            //             d108 = d96;
+            //         }
+            //         if (v108 > v109 + p108) {
+            //             v108 = v109 + p108;
+            //             d108 = d109;
+            //         }
+            //         if (v108 > v95 + p108) {
+            //             v108 = v95 + p108;
+            //             d108 = d95;
+            //         }
+            // }
             if (rc.canSenseLocation(l112)) {
                     p112 = rc.senseRubble(l112) + 10;
                     if (v112 > v98 + p112) {
@@ -1466,10 +1385,10 @@ public class AdvancedMove3 /* extends BFS */ {
                         v45 = v58 + p45;
                         d45 = d58;
                     }
-                    if (v45 > v57 + p45) {
-                        v45 = v57 + p45;
-                        d45 = d57;
-                    }
+                    // if (v45 > v57 + p45) {
+                    //     v45 = v57 + p45;
+                    //     d45 = d57;
+                    // }
                     if (v45 > v59 + p45) {
                         v45 = v59 + p45;
                         d45 = d59;
@@ -1515,30 +1434,30 @@ public class AdvancedMove3 /* extends BFS */ {
                         v123 = v111 + p123;
                         d123 = d111;
                     }
-                    if (v123 > v109 + p123) {
-                        v123 = v109 + p123;
-                        d123 = d109;
-                    }
+                    // if (v123 > v109 + p123) {
+                    //     v123 = v109 + p123;
+                    //     d123 = d109;
+                    // }
             }
-            if (rc.canSenseLocation(l44)) {
-                    p44 = rc.senseRubble(l44) + 10;
-                    if (v44 > v58 + p44) {
-                        v44 = v58 + p44;
-                        d44 = d58;
-                    }
-                    if (v44 > v57 + p44) {
-                        v44 = v57 + p44;
-                        d44 = d57;
-                    }
-                    if (v44 > v56 + p44) {
-                        v44 = v56 + p44;
-                        d44 = d56;
-                    }
-                    if (v44 > v45 + p44) {
-                        v44 = v45 + p44;
-                        d44 = d45;
-                    }
-            }
+            // if (rc.canSenseLocation(l44)) {
+            //         p44 = rc.senseRubble(l44) + 10;
+            //         if (v44 > v58 + p44) {
+            //             v44 = v58 + p44;
+            //             d44 = d58;
+            //         }
+            //         if (v44 > v57 + p44) {
+            //             v44 = v57 + p44;
+            //             d44 = d57;
+            //         }
+            //         if (v44 > v56 + p44) {
+            //             v44 = v56 + p44;
+            //             d44 = d56;
+            //         }
+            //         if (v44 > v45 + p44) {
+            //             v44 = v45 + p44;
+            //             d44 = d45;
+            //         }
+            // }
             if (rc.canSenseLocation(l46)) {
                     p46 = rc.senseRubble(l46) + 10;
                     if (v46 > v58 + p46) {
@@ -1634,25 +1553,25 @@ public class AdvancedMove3 /* extends BFS */ {
                         d100 = d87;
                     }
             }
-            if (rc.canSenseLocation(l122)) {
-                    p122 = rc.senseRubble(l122) + 10;
-                    if (v122 > v110 + p122) {
-                        v122 = v110 + p122;
-                        d122 = d110;
-                    }
-                    if (v122 > v109 + p122) {
-                        v122 = v109 + p122;
-                        d122 = d109;
-                    }
-                    if (v122 > v108 + p122) {
-                        v122 = v108 + p122;
-                        d122 = d108;
-                    }
-                    if (v122 > v123 + p122) {
-                        v122 = v123 + p122;
-                        d122 = d123;
-                    }
-            }
+            // if (rc.canSenseLocation(l122)) {
+            //         p122 = rc.senseRubble(l122) + 10;
+            //         if (v122 > v110 + p122) {
+            //             v122 = v110 + p122;
+            //             d122 = d110;
+            //         }
+            //         if (v122 > v109 + p122) {
+            //             v122 = v109 + p122;
+            //             d122 = d109;
+            //         }
+            //         if (v122 > v108 + p122) {
+            //             v122 = v108 + p122;
+            //             d122 = d108;
+            //         }
+            //         if (v122 > v123 + p122) {
+            //             v122 = v123 + p122;
+            //             d122 = d123;
+            //         }
+            // }
             if (rc.canSenseLocation(l124)) {
                     p124 = rc.senseRubble(l124) + 10;
                     if (v124 > v110 + p124) {
@@ -1672,21 +1591,21 @@ public class AdvancedMove3 /* extends BFS */ {
                         d124 = d123;
                     }
             }
-            if (rc.canSenseLocation(l43)) {
-                    p43 = rc.senseRubble(l43) + 10;
-                    if (v43 > v57 + p43) {
-                        v43 = v57 + p43;
-                        d43 = d57;
-                    }
-                    if (v43 > v56 + p43) {
-                        v43 = v56 + p43;
-                        d43 = d56;
-                    }
-                    if (v43 > v44 + p43) {
-                        v43 = v44 + p43;
-                        d43 = d44;
-                    }
-            }
+            // if (rc.canSenseLocation(l43)) {
+            //         p43 = rc.senseRubble(l43) + 10;
+            //         if (v43 > v57 + p43) {
+            //             v43 = v57 + p43;
+            //             d43 = d57;
+            //         }
+            //         if (v43 > v56 + p43) {
+            //             v43 = v56 + p43;
+            //             d43 = d56;
+            //         }
+            //         if (v43 > v44 + p43) {
+            //             v43 = v44 + p43;
+            //             d43 = d44;
+            //         }
+            // }
             if (rc.canSenseLocation(l47)) {
                     p47 = rc.senseRubble(l47) + 10;
                     if (v47 > v59 + p47) {
@@ -1702,25 +1621,25 @@ public class AdvancedMove3 /* extends BFS */ {
                         d47 = d46;
                     }
             }
-            if (rc.canSenseLocation(l55)) {
-                    p55 = rc.senseRubble(l55) + 10;
-                    if (v55 > v69 + p55) {
-                        v55 = v69 + p55;
-                        d55 = d69;
-                    }
-                    if (v55 > v56 + p55) {
-                        v55 = v56 + p55;
-                        d55 = d56;
-                    }
-                    // if (v55 > v68 + p55) {
-                    //     v55 = v68 + p55;
-                    //     d55 = d68;
-                    // }
-                    if (v55 > v43 + p55) {
-                        v55 = v43 + p55;
-                        d55 = d43;
-                    }
-            }
+            // if (rc.canSenseLocation(l55)) {
+            //         p55 = rc.senseRubble(l55) + 10;
+            //         if (v55 > v69 + p55) {
+            //             v55 = v69 + p55;
+            //             d55 = d69;
+            //         }
+            //         if (v55 > v56 + p55) {
+            //             v55 = v56 + p55;
+            //             d55 = d56;
+            //         }
+            //         // if (v55 > v68 + p55) {
+            //         //     v55 = v68 + p55;
+            //         //     d55 = d68;
+            //         // }
+            //         if (v55 > v43 + p55) {
+            //             v55 = v43 + p55;
+            //             d55 = d43;
+            //         }
+            // }
             if (rc.canSenseLocation(l61)) {
                     p61 = rc.senseRubble(l61) + 10;
                     if (v61 > v73 + p61) {
@@ -1740,21 +1659,21 @@ public class AdvancedMove3 /* extends BFS */ {
                         d61 = d47;
                     }
             }
-            if (rc.canSenseLocation(l107)) {
-                    p107 = rc.senseRubble(l107) + 10;
-                    if (v107 > v95 + p107) {
-                        v107 = v95 + p107;
-                        d107 = d95;
-                    }
-                    if (v107 > v108 + p107) {
-                        v107 = v108 + p107;
-                        d107 = d108;
-                    }
-                    // if (v107 > v94 + p107) {
-                    //     v107 = v94 + p107;
-                    //     d107 = d94;
-                    // }
-            }
+            // if (rc.canSenseLocation(l107)) {
+            //         p107 = rc.senseRubble(l107) + 10;
+            //         if (v107 > v95 + p107) {
+            //             v107 = v95 + p107;
+            //             d107 = d95;
+            //         }
+            //         if (v107 > v108 + p107) {
+            //             v107 = v108 + p107;
+            //             d107 = d108;
+            //         }
+            //         // if (v107 > v94 + p107) {
+            //         //     v107 = v94 + p107;
+            //         //     d107 = d94;
+            //         // }
+            // }
             if (rc.canSenseLocation(l113)) {
                     p113 = rc.senseRubble(l113) + 10;
                     if (v113 > v99 + p113) {
@@ -1770,25 +1689,25 @@ public class AdvancedMove3 /* extends BFS */ {
                         d113 = d100;
                     }
             }
-            if (rc.canSenseLocation(l121)) {
-                    p121 = rc.senseRubble(l121) + 10;
-                    if (v121 > v109 + p121) {
-                        v121 = v109 + p121;
-                        d121 = d109;
-                    }
-                    if (v121 > v108 + p121) {
-                        v121 = v108 + p121;
-                        d121 = d108;
-                    }
-                    if (v121 > v122 + p121) {
-                        v121 = v122 + p121;
-                        d121 = d122;
-                    }
-                    if (v121 > v107 + p121) {
-                        v121 = v107 + p121;
-                        d121 = d107;
-                    }
-            }
+            // if (rc.canSenseLocation(l121)) {
+            //         p121 = rc.senseRubble(l121) + 10;
+            //         if (v121 > v109 + p121) {
+            //             v121 = v109 + p121;
+            //             d121 = d109;
+            //         }
+            //         if (v121 > v108 + p121) {
+            //             v121 = v108 + p121;
+            //             d121 = d108;
+            //         }
+            //         if (v121 > v122 + p121) {
+            //             v121 = v122 + p121;
+            //             d121 = d122;
+            //         }
+            //         if (v121 > v107 + p121) {
+            //             v121 = v107 + p121;
+            //             d121 = d107;
+            //         }
+            // }
             if (rc.canSenseLocation(l125)) {
                     p125 = rc.senseRubble(l125) + 10;
                     if (v125 > v111 + p125) {
@@ -1814,10 +1733,10 @@ public class AdvancedMove3 /* extends BFS */ {
                         v32 = v45 + p32;
                         d32 = d45;
                     }
-                    if (v32 > v44 + p32) {
-                        v32 = v44 + p32;
-                        d32 = d44;
-                    }
+                    // if (v32 > v44 + p32) {
+                    //     v32 = v44 + p32;
+                    //     d32 = d44;
+                    // }
                     if (v32 > v46 + p32) {
                         v32 = v46 + p32;
                         d32 = d46;
@@ -1863,30 +1782,30 @@ public class AdvancedMove3 /* extends BFS */ {
                         v136 = v124 + p136;
                         d136 = d124;
                     }
-                    if (v136 > v122 + p136) {
-                        v136 = v122 + p136;
-                        d136 = d122;
-                    }
+                    // if (v136 > v122 + p136) {
+                    //     v136 = v122 + p136;
+                    //     d136 = d122;
+                    // }
             }
-            if (rc.canSenseLocation(l31)) {
-                    p31 = rc.senseRubble(l31) + 10;
-                    if (v31 > v45 + p31) {
-                        v31 = v45 + p31;
-                        d31 = d45;
-                    }
-                    if (v31 > v44 + p31) {
-                        v31 = v44 + p31;
-                        d31 = d44;
-                    }
-                    if (v31 > v43 + p31) {
-                        v31 = v43 + p31;
-                        d31 = d43;
-                    }
-                    if (v31 > v32 + p31) {
-                        v31 = v32 + p31;
-                        d31 = d32;
-                    }
-            }
+            // if (rc.canSenseLocation(l31)) {
+            //         p31 = rc.senseRubble(l31) + 10;
+            //         if (v31 > v45 + p31) {
+            //             v31 = v45 + p31;
+            //             d31 = d45;
+            //         }
+            //         if (v31 > v44 + p31) {
+            //             v31 = v44 + p31;
+            //             d31 = d44;
+            //         }
+            //         if (v31 > v43 + p31) {
+            //             v31 = v43 + p31;
+            //             d31 = d43;
+            //         }
+            //         if (v31 > v32 + p31) {
+            //             v31 = v32 + p31;
+            //             d31 = d32;
+            //         }
+            // }
             if (rc.canSenseLocation(l33)) {
                     p33 = rc.senseRubble(l33) + 10;
                     if (v33 > v45 + p33) {
@@ -1982,25 +1901,25 @@ public class AdvancedMove3 /* extends BFS */ {
                         d101 = d88;
                     }
             }
-            if (rc.canSenseLocation(l135)) {
-                    p135 = rc.senseRubble(l135) + 10;
-                    if (v135 > v123 + p135) {
-                        v135 = v123 + p135;
-                        d135 = d123;
-                    }
-                    if (v135 > v122 + p135) {
-                        v135 = v122 + p135;
-                        d135 = d122;
-                    }
-                    if (v135 > v121 + p135) {
-                        v135 = v121 + p135;
-                        d135 = d121;
-                    }
-                    if (v135 > v136 + p135) {
-                        v135 = v136 + p135;
-                        d135 = d136;
-                    }
-            }
+            // if (rc.canSenseLocation(l135)) {
+            //         p135 = rc.senseRubble(l135) + 10;
+            //         if (v135 > v123 + p135) {
+            //             v135 = v123 + p135;
+            //             d135 = d123;
+            //         }
+            //         if (v135 > v122 + p135) {
+            //             v135 = v122 + p135;
+            //             d135 = d122;
+            //         }
+            //         if (v135 > v121 + p135) {
+            //             v135 = v121 + p135;
+            //             d135 = d121;
+            //         }
+            //         if (v135 > v136 + p135) {
+            //             v135 = v136 + p135;
+            //             d135 = d136;
+            //         }
+            // }
             if (rc.canSenseLocation(l137)) {
                     p137 = rc.senseRubble(l137) + 10;
                     if (v137 > v123 + p137) {
@@ -2020,21 +1939,21 @@ public class AdvancedMove3 /* extends BFS */ {
                         d137 = d136;
                     }
             }
-            if (rc.canSenseLocation(l42)) {
-                    p42 = rc.senseRubble(l42) + 10;
-                    if (v42 > v56 + p42) {
-                        v42 = v56 + p42;
-                        d42 = d56;
-                    }
-                    if (v42 > v43 + p42) {
-                        v42 = v43 + p42;
-                        d42 = d43;
-                    }
-                    if (v42 > v55 + p42) {
-                        v42 = v55 + p42;
-                        d42 = d55;
-                    }
-            }
+            // if (rc.canSenseLocation(l42)) {
+            //         p42 = rc.senseRubble(l42) + 10;
+            //         if (v42 > v56 + p42) {
+            //             v42 = v56 + p42;
+            //             d42 = d56;
+            //         }
+            //         if (v42 > v43 + p42) {
+            //             v42 = v43 + p42;
+            //             d42 = d43;
+            //         }
+            //         if (v42 > v55 + p42) {
+            //             v42 = v55 + p42;
+            //             d42 = d55;
+            //         }
+            // }
             if (rc.canSenseLocation(l48)) {
                     p48 = rc.senseRubble(l48) + 10;
                     if (v48 > v60 + p48) {
@@ -2050,21 +1969,21 @@ public class AdvancedMove3 /* extends BFS */ {
                         d48 = d61;
                     }
             }
-            if (rc.canSenseLocation(l120)) {
-                    p120 = rc.senseRubble(l120) + 10;
-                    if (v120 > v108 + p120) {
-                        v120 = v108 + p120;
-                        d120 = d108;
-                    }
-                    if (v120 > v121 + p120) {
-                        v120 = v121 + p120;
-                        d120 = d121;
-                    }
-                    if (v120 > v107 + p120) {
-                        v120 = v107 + p120;
-                        d120 = d107;
-                    }
-            }
+            // if (rc.canSenseLocation(l120)) {
+            //         p120 = rc.senseRubble(l120) + 10;
+            //         if (v120 > v108 + p120) {
+            //             v120 = v108 + p120;
+            //             d120 = d108;
+            //         }
+            //         if (v120 > v121 + p120) {
+            //             v120 = v121 + p120;
+            //             d120 = d121;
+            //         }
+            //         if (v120 > v107 + p120) {
+            //             v120 = v107 + p120;
+            //             d120 = d107;
+            //         }
+            // }
             if (rc.canSenseLocation(l126)) {
                     p126 = rc.senseRubble(l126) + 10;
                     if (v126 > v112 + p126) {
@@ -2080,25 +1999,25 @@ public class AdvancedMove3 /* extends BFS */ {
                         d126 = d125;
                     }
             }
-            if (rc.canSenseLocation(l30)) {
-                    p30 = rc.senseRubble(l30) + 10;
-                    if (v30 > v44 + p30) {
-                        v30 = v44 + p30;
-                        d30 = d44;
-                    }
-                    if (v30 > v43 + p30) {
-                        v30 = v43 + p30;
-                        d30 = d43;
-                    }
-                    if (v30 > v31 + p30) {
-                        v30 = v31 + p30;
-                        d30 = d31;
-                    }
-                    if (v30 > v42 + p30) {
-                        v30 = v42 + p30;
-                        d30 = d42;
-                    }
-            }
+            // if (rc.canSenseLocation(l30)) {
+            //         p30 = rc.senseRubble(l30) + 10;
+            //         if (v30 > v44 + p30) {
+            //             v30 = v44 + p30;
+            //             d30 = d44;
+            //         }
+            //         if (v30 > v43 + p30) {
+            //             v30 = v43 + p30;
+            //             d30 = d43;
+            //         }
+            //         if (v30 > v31 + p30) {
+            //             v30 = v31 + p30;
+            //             d30 = d31;
+            //         }
+            //         if (v30 > v42 + p30) {
+            //             v30 = v42 + p30;
+            //             d30 = d42;
+            //         }
+            // }
             if (rc.canSenseLocation(l34)) {
                     p34 = rc.senseRubble(l34) + 10;
                     if (v34 > v46 + p34) {
@@ -2194,25 +2113,25 @@ public class AdvancedMove3 /* extends BFS */ {
                         d114 = d126;
                     }
             }
-            if (rc.canSenseLocation(l134)) {
-                    p134 = rc.senseRubble(l134) + 10;
-                    if (v134 > v122 + p134) {
-                        v134 = v122 + p134;
-                        d134 = d122;
-                    }
-                    if (v134 > v121 + p134) {
-                        v134 = v121 + p134;
-                        d134 = d121;
-                    }
-                    if (v134 > v135 + p134) {
-                        v134 = v135 + p134;
-                        d134 = d135;
-                    }
-                    if (v134 > v120 + p134) {
-                        v134 = v120 + p134;
-                        d134 = d120;
-                    }
-            }
+            // if (rc.canSenseLocation(l134)) {
+            //         p134 = rc.senseRubble(l134) + 10;
+            //         if (v134 > v122 + p134) {
+            //             v134 = v122 + p134;
+            //             d134 = d122;
+            //         }
+            //         if (v134 > v121 + p134) {
+            //             v134 = v121 + p134;
+            //             d134 = d121;
+            //         }
+            //         // if (v134 > v135 + p134) {
+            //         //     v134 = v135 + p134;
+            //         //     d134 = d135;
+            //         // }
+            //         if (v134 > v120 + p134) {
+            //             v134 = v120 + p134;
+            //             d134 = d120;
+            //         }
+            // }
             if (rc.canSenseLocation(l138)) {
                     p138 = rc.senseRubble(l138) + 10;
                     if (v138 > v124 + p138) {
@@ -2796,43 +2715,41 @@ public class AdvancedMove3 /* extends BFS */ {
             */
 
 
-            if (l84.distanceSquaredTo(target) <= rc.getType().visionRadiusSquared) {
-                if (target.equals(l85)) {
-                    return d85;
-                }
-                if (target.equals(l73)) {
-                    return d73;
-                }
-                if (target.equals(l86)) {
-                    return d86;
-                }
-                if (target.equals(l99)) {
-                    return d99;
-                }
-                if (target.equals(l74)) {
-                    return d74;
-                }
-                if (target.equals(l87)) {
-                    return d87;
-                }
-                if (target.equals(l100)) {
-                    return d100;
-                }
-                if (target.equals(l62)) {
-                    return d62;
-                }
-                if (target.equals(l75)) {
-                    return d75;
-                }
-                if (target.equals(l88)) {
-                    return d88;
-                }
-                if (target.equals(l101)) {
-                    return d101;
-                }
-                if (target.equals(l114)) {
-                    return d114;
-                }
+            if (target.equals(l85)) {
+                return d85;
+            }
+            if (target.equals(l73)) {
+                return d73;
+            }
+            if (target.equals(l86)) {
+                return d86;
+            }
+            if (target.equals(l99)) {
+                return d99;
+            }
+            if (target.equals(l74)) {
+                return d74;
+            }
+            if (target.equals(l87)) {
+                return d87;
+            }
+            if (target.equals(l100)) {
+                return d100;
+            }
+            if (target.equals(l62)) {
+                return d62;
+            }
+            if (target.equals(l75)) {
+                return d75;
+            }
+            if (target.equals(l88)) {
+                return d88;
+            }
+            if (target.equals(l101)) {
+                return d101;
+            }
+            if (target.equals(l114)) {
+                return d114;
             }
 
 

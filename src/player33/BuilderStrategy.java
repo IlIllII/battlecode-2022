@@ -1,4 +1,4 @@
-package player32;
+package player33;
 
 import battlecode.common.*;
 
@@ -14,7 +14,6 @@ strictfp class BuilderStrategy {
         Team player = rc.getTeam();
         Team opponent = rc.getTeam().opponent();
         int leadAmount = rc.getTeamLeadAmount(player);
-        boolean labBuilt = false;
 
         int x = RobotPlayer.mapWidth - me.x > RobotPlayer.mapWidth / 2 ? 0 : RobotPlayer.mapWidth - 1;
         int y = RobotPlayer.mapHeight - me.y > RobotPlayer.mapHeight / 2 ? 0 : RobotPlayer.mapHeight - 1;
@@ -28,21 +27,6 @@ strictfp class BuilderStrategy {
 
         RobotInfo[] allies = rc.senseNearbyRobots(-1, player);
         MapLocation repairSpot = new MapLocation(0, 0);
-
-        if (round > 1000) {
-            selfDestruct = false;
-            if (rc.canSenseLocation(target) && rc.canSenseRobotAtLocation(target) && rc.senseRobotAtLocation(target).type.equals(RobotType.LABORATORY)) {
-                selfDestruct = true;
-            } else if (rc.canSenseLocation(target) && !rc.canSenseRobotAtLocation(target)) {
-                if (rc.adjacentLocation(me.directionTo(target)).equals(target) && rc.canBuildRobot(RobotType.LABORATORY, me.directionTo(target))) {
-                    rc.buildRobot(RobotType.LABORATORY, me.directionTo(target));
-                }
-            }
-        }
-
-        if (rc.getTeamGoldAmount(rc.getTeam()) > 0) {
-            selfDestruct = true;
-        }
 
         boolean repairing = false;
         for (int i = 0; i < allies.length; i++) {
@@ -71,9 +55,7 @@ strictfp class BuilderStrategy {
                 }
             }
         } */
-
-        
-        // else if (labCount == 0 && rc.senseNearbyRobots(-1, opponent).length < 3 && leadAmount > 260 && round > 50) {
+        // } else if (labCount == 0 && rc.senseNearbyRobots(-1, opponent).length < 3 && leadAmount > 260 && round > 50) {
         //     for (int i = 1; i < RobotPlayer.directions.length; i += 2) {
         //         if (rc.canBuildRobot(RobotType.LABORATORY, RobotPlayer.directions[i])) {
         //             MapLocation potentialLoc = rc.adjacentLocation(RobotPlayer.directions[i]);
@@ -123,12 +105,6 @@ strictfp class BuilderStrategy {
                 }
             } else {
                 // System.out.println("Should be moving");
-                if (!rc.adjacentLocation(me.directionTo(target)).equals(target)) {
-                    Movement.move(rc, target, new MapLocation(1000, 1000), 1, false);
-                }
-            }
-        } else if (!selfDestruct) {
-            if (!rc.adjacentLocation(me.directionTo(target)).equals(target)) {
                 Movement.move(rc, target, new MapLocation(1000, 1000), 1, false);
             }
         }

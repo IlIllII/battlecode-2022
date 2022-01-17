@@ -3458,7 +3458,7 @@ public class AdvancedMove /* extends BFS */ {
 
 
             int end = Clock.getBytecodeNum();
-            rc.setIndicatorString("Move Timing: " + (end - start));
+            // rc.setIndicatorString("Move Timing: " + (end - start));
 
 
             return ans;
