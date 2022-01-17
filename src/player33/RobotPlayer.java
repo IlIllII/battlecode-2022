@@ -572,7 +572,6 @@ public strictfp class RobotPlayer {
                 } catch (Exception e) {
                     System.out.println(rc.getType() + " Exception");
                     e.printStackTrace();
-                    rc.resign();
                 } finally {
                     Clock.yield();
                 }
@@ -585,7 +584,7 @@ public strictfp class RobotPlayer {
                             ArchonStrategy.run(rc);
                             break;
                         case MINER:
-                            MinerStrategy.run(rc);
+                            MinerStrategyBigMap.run(rc);
                             break;
                         case SOLDIER:
                             SoldierStrategy.run(rc);
@@ -612,7 +611,6 @@ public strictfp class RobotPlayer {
                 } catch (Exception e) {
                     System.out.println(rc.getType() + " Exception");
                     e.printStackTrace();
-                    rc.resign();
                 } finally {
                     Clock.yield();
                 }

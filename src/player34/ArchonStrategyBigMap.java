@@ -149,7 +149,7 @@ strictfp class ArchonStrategyBigMap {
             // 60 and 100
             // 100 and 140 for big maps
 
-            if (round > 80 && round < 110 && archonCount > 1) {
+            if (round > 108 && round < 110 && archonCount > 1) {
                 buildUnit(rc, RobotType.BUILDER, Direction.CENTER);
             } else {
                 if (leadAmount > 70 && (m  < 100 / archonCount || leadAmount > 200)) {
@@ -290,10 +290,11 @@ strictfp class ArchonStrategyBigMap {
         }
         
 
-        if (round == 2 && id == firstArch) {
-            relocatedToMainArchon = true;
-        }
+        // if (round == 2 && id == firstArch) {
+        //     relocatedToMainArchon = true;
+        // }
         
+
 
         if (RobotPlayer.mapWidth <= 50 && RobotPlayer.mapHeight <= 50 || true) {
             if (round > 15 && id != firstArch && !relocatedToMainArchon) {
@@ -302,7 +303,7 @@ strictfp class ArchonStrategyBigMap {
                 }
     
                 if (rc.getMode().equals(RobotMode.PORTABLE)) {
-                    if (me.distanceSquaredTo(archLocs[firstArch].location) <= 2) {
+                    if (me.distanceSquaredTo(archLocs[firstArch].location) <= 2 && round > 100) {
                         if (rc.isTransformReady() && rc.canTransform()) {
                             relocatedToMainArchon = true;
                         }
@@ -310,6 +311,29 @@ strictfp class ArchonStrategyBigMap {
         
                     if (rc.isMovementReady()) {
                         Movement.move(rc, archLocs[firstArch].location, new MapLocation(1000, 1000), 2, false);
+                    }
+                }
+            }
+            // First arch moves
+            if (round > 15 && id == firstArch && !relocatedToMainArchon) {
+                MapLocation newTargett = new MapLocation(RobotPlayer.mapWidth / 2, RobotPlayer.mapHeight / 2);
+                moveTarget = newTargett;
+                if (rc.canSenseLocation(newTargett)) {
+                    relocatedToMainArchon = true;
+                }
+                if (rc.isTransformReady() && rc.getMode().equals(RobotMode.TURRET) && rc.canTransform() && !relocatedToMainArchon) {
+                    rc.transform();
+                }
+    
+                if (rc.getMode().equals(RobotMode.PORTABLE)) {
+                    if (me.distanceSquaredTo(newTargett) <= 2 || (rc.canSenseLocation(newTargett) && rc.senseRubble(newTargett) > 0) || round > 100) {
+                        if (rc.isTransformReady() && rc.canTransform()) {
+                            relocatedToMainArchon = true;
+                        }
+                    }
+        
+                    if (rc.isMovementReady()) {
+                        Movement.move(rc, newTargett, new MapLocation(1000, 1000), 2, false);
                     }
                 }
             }
@@ -321,13 +345,13 @@ strictfp class ArchonStrategyBigMap {
 
 
 
-        if ((relocatedToMainArchon || id == firstArch) && round > 50 && !moveTarget.equals(me) && rc.senseRubble(me) > 0) {
+        if ((relocatedToMainArchon /* || id == firstArch */ ) && round > 50 && !moveTarget.equals(me) && rc.senseRubble(me) > 0) {
             if (rc.isTransformReady() && rc.getMode().equals(RobotMode.TURRET) && rc.canTransform()) {
                 rc.transform();
             }
         }
 
-        if ((relocatedToMainArchon || id == firstArch) && rc.getMode().equals(RobotMode.PORTABLE)) {
+        if ((relocatedToMainArchon /* || id == firstArch */ ) && rc.getMode().equals(RobotMode.PORTABLE)) {
             if (me.equals(moveTarget)) {
                 if (rc.isTransformReady() && rc.canTransform()) {
                     rc.transform();
